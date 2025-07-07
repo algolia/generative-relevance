@@ -22,7 +22,7 @@ export default function Page() {
       if (responseTasks?.length > 0) {
         setTasks(responseTasks);
       } else {
-        router.push(`/indices/${responseIndexName}`);
+        router.push(`/${responseIndexName}`);
       }
     },
   });
@@ -38,7 +38,7 @@ export default function Page() {
       revalidateOnReconnect: false,
       onSuccess: ({ allCompleted, anyFailed }) => {
         if (allCompleted) {
-          router.push(`/indices/${indexName}`);
+          router.push(`/${indexName}`);
         } else if (anyFailed) {
           setTasks([]);
         }
