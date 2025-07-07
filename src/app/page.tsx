@@ -1,103 +1,237 @@
-import Image from "next/image";
+'use client';
 
-export default function Home() {
+import { useRouter } from 'next/navigation';
+import { useState } from 'react';
+import useSWR from 'swr';
+import useSWRMutation from 'swr/mutation';
+
+import { TasksResponse, TaskWithStatus } from './api/tasks/route';
+
+export default function Page() {
+  const router = useRouter();
+  const [indexName, setIndexName] = useState('');
+  const [jsonInput, setJsonInput] = useState('');
+  const [tasks, setTasks] = useState<TaskWithStatus[]>([]);
+
+  const {
+    trigger,
+    isMutating,
+    error: createIndexError,
+  } = useSWRMutation('/api/indices', createIndex, {
+    onSuccess: ({ tasks: responseTasks, indexName: responseIndexName }) => {
+      if (responseTasks?.length > 0) {
+        setTasks(responseTasks);
+      } else {
+        router.push(`/indices/${responseIndexName}`);
+      }
+    },
+  });
+
+  const shouldFetch = tasks.length > 0;
+
+  const { data, error: taskError } = useSWR(
+    shouldFetch ? ['/api/tasks', tasks] : null,
+    ([url, tasks]) => fetchTasks(url, tasks),
+    {
+      refreshInterval: shouldFetch ? 2000 : 0,
+      revalidateOnFocus: false,
+      revalidateOnReconnect: false,
+      onSuccess: ({ allCompleted, anyFailed }) => {
+        if (allCompleted) {
+          router.push(`/indices/${indexName}`);
+        } else if (anyFailed) {
+          setTasks([]);
+        }
+      },
+    }
+  );
+
+  const isProcessing = isMutating || shouldFetch;
+  const isAnalyzing = isMutating && tasks.length === 0;
+  const tasksWithStatus = data?.tasksWithStatus || [];
+  const hasError = createIndexError || taskError || data?.anyFailed;
+
   return (
-    <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
-      <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="list-inside list-decimal text-sm/6 text-center sm:text-left font-[family-name:var(--font-geist-mono)]">
-          <li className="mb-2 tracking-[-.01em]">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] px-1 py-0.5 rounded font-[family-name:var(--font-geist-mono)] font-semibold">
-              src/app/page.tsx
-            </code>
-            .
-          </li>
-          <li className="tracking-[-.01em]">
-            Save and see your changes instantly.
-          </li>
-        </ol>
+    <div className="max-w-4xl mx-auto p-6">
+      <h1 className="text-2xl font-bold mb-6">Create New Algolia Index</h1>
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:w-auto"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
+      <form
+        onSubmit={async (event: React.FormEvent) => {
+          event.preventDefault();
+
+          try {
+            const records = JSON.parse(jsonInput);
+
+            await trigger({ indexName, records });
+          } catch (err) {
+            console.error('JSON parsing error:', err);
+          }
+        }}
+        className="space-y-4"
+      >
+        <div>
+          <label
+            htmlFor="index-name"
+            className="block text-sm font-medium mb-2"
           >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 w-full sm:w-auto md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
+            Index Name
+          </label>
+          <input
+            id="index-name"
+            type="text"
+            value={indexName}
+            onChange={(e) => setIndexName(e.target.value)}
+            placeholder="Enter index name..."
+            className="w-full p-3 border border-gray-300 rounded-md"
+            required
+            disabled={isProcessing}
+          />
         </div>
-      </main>
-      <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
+
+        <div>
+          <label
+            htmlFor="json-input"
+            className="block text-sm font-medium mb-2"
+          >
+            Records JSON Data
+          </label>
+          <textarea
+            id="json-input"
+            value={jsonInput}
+            onChange={(e) => setJsonInput(e.target.value)}
+            placeholder="Enter JSON array of records for the index..."
+            className="w-full h-64 p-3 border border-gray-300 rounded-md resize-vertical"
+            required
+            disabled={isProcessing}
           />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
+        </div>
+
+        <button
+          type="submit"
+          disabled={isProcessing}
+          className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50"
         >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
+          {isProcessing ? 'Creating Index...' : 'Create Index'}
+        </button>
+      </form>
+
+      {hasError && (
+        <div className="mt-4 space-y-2">
+          {createIndexError && (
+            <div className="p-3 rounded-md bg-red-100 text-red-700">
+              Error creating index: {createIndexError.message}
+            </div>
+          )}
+          {taskError && (
+            <div className="p-3 rounded-md bg-red-100 text-red-700">
+              Error tracking tasks: {taskError.message}
+            </div>
+          )}
+          {data?.anyFailed && (
+            <div className="p-3 rounded-md bg-red-100 text-red-700">
+              Some tasks failed. Please check the configuration.
+            </div>
+          )}
+        </div>
+      )}
+
+      {(isAnalyzing || tasksWithStatus.length > 0) && (
+        <div className="fixed bottom-4 right-4 bg-white border border-gray-200 rounded-lg shadow-lg p-4 max-w-sm z-50">
+          <div className="flex items-center mb-2">
+            <div className="w-3 h-3 bg-blue-500 rounded-full mr-2 animate-pulse"></div>
+            <h3 className="font-medium text-gray-900">
+              {isAnalyzing ? 'Analyzing Records...' : 'Creating Index...'}
+            </h3>
+          </div>
+
+          <div className="space-y-2">
+            {isAnalyzing && (
+              <div className="flex items-center text-sm">
+                <div className="w-2 h-2 rounded-full mr-2 bg-blue-500 animate-pulse"></div>
+                <span className="text-gray-700">
+                  AI analyzing records for optimal configuration
+                </span>
+              </div>
+            )}
+            {tasksWithStatus.map((task, index) => (
+              <TaskStatus key={`${task.taskID}-${index}`} task={task} />
+            ))}
+          </div>
+
+          {tasksWithStatus.length > 0 && (
+            <div className="mt-3 text-xs text-gray-500">
+              {data?.completedCount || 0} of{' '}
+              {data?.totalCount || tasksWithStatus.length} tasks completed
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
+async function fetchTasks(url: string, tasks: TaskWithStatus[]) {
+  const response = await fetch(url, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ tasks }),
+  });
+
+  if (!response.ok) {
+    throw new Error('Failed to fetch task status');
+  }
+
+  return response.json() as Promise<TasksResponse>;
+}
+
+type CreateIndexParams = {
+  indexName: string;
+  records: Array<Record<string, unknown>>;
+};
+
+async function createIndex(url: string, { arg }: { arg: CreateIndexParams }) {
+  const response = await fetch(url, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(arg),
+  });
+
+  if (!response.ok) {
+    const error = await response.text();
+
+    throw new Error(error);
+  }
+
+  return response.json();
+}
+
+type TaskStatusProps = {
+  task: TaskWithStatus;
+};
+
+function TaskStatus({ task }: TaskStatusProps) {
+  return (
+    <div className="flex items-center text-sm">
+      <div
+        className={`w-2 h-2 rounded-full mr-2 ${
+          task.status === 'published'
+            ? 'bg-green-500'
+            : task.status === 'failed'
+            ? 'bg-red-500'
+            : 'bg-yellow-500 animate-pulse'
+        }`}
+      ></div>
+      <span
+        className={
+          task.status === 'published'
+            ? 'text-green-700 line-through'
+            : task.status === 'failed'
+            ? 'text-red-700'
+            : 'text-gray-700'
+        }
+      >
+        {task.description}
+      </span>
     </div>
   );
 }
