@@ -20,8 +20,8 @@ export default function Page() {
   const params = useParams();
   const indexName = params.indexName as string;
 
-  const { data: recordsData, error: recordsError } = useSWR<{ records: Hit[] }>(
-    indexName ? `/api/indices/${indexName}/records` : null,
+  const { data: hitsData, error: hitsError } = useSWR<{ hits: Hit[] }>(
+    indexName ? `/api/indices/${indexName}/hits` : null,
     fetcher
   );
 
@@ -30,15 +30,15 @@ export default function Page() {
     fetcher
   );
 
-  const records = recordsData?.records || [];
-  const loading = !settings && !settingsError && !recordsError;
-  const error = recordsError || settingsError;
+  const hits = hitsData?.hits || [];
+  const loading = !settings && !settingsError && !hitsError;
+  const error = hitsError || settingsError;
 
   if (loading) {
     return (
       <div className="max-w-6xl mx-auto p-6">
         <div className="flex items-center justify-center h-32">
-          <div className="text-gray-500">Loading records...</div>
+          <div className="text-gray-500">Loading hits...</div>
         </div>
       </div>
     );
@@ -65,22 +65,22 @@ export default function Page() {
     <div className="max-w-6xl mx-auto p-6">
       <div className="mb-6">
         <h1 className="text-2xl font-bold mb-2">Index: {indexName}</h1>
-        <p className="text-gray-600">{records.length} records</p>
+        <p className="text-gray-600">{hits.length} hits</p>
       </div>
 
       {hasConfiguration && <ConfigurationPanel settings={settings} />}
 
       <div className="mb-4">
-        <h2 className="text-xl font-semibold text-gray-800">Records</h2>
+        <h2 className="text-xl font-semibold text-gray-800">Hits</h2>
       </div>
 
-      {records.length === 0 ? (
+      {hits.length === 0 ? (
         <div className="text-center py-12">
-          <p className="text-gray-500">No records found in this index.</p>
+          <p className="text-gray-500">No hits found in this index.</p>
         </div>
       ) : (
         <div className="space-y-4">
-          {records.map((record, index) => (
+          {hits.map((record, index) => (
             <RecordCard
               key={record.objectID || index}
               record={record}
