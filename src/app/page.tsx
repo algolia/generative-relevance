@@ -25,11 +25,7 @@ export default function Page() {
       if (responseTasks?.length > 0) {
         setTasks(responseTasks);
       } else {
-        router.push(
-          `/${responseIndexName}?appId=${encodeURIComponent(
-            appId
-          )}&writeApiKey=${encodeURIComponent(writeApiKey)}`
-        );
+        router.push(`/${responseIndexName}`);
       }
     },
   });
@@ -46,11 +42,7 @@ export default function Page() {
       revalidateOnReconnect: false,
       onSuccess: ({ allCompleted, anyFailed }) => {
         if (allCompleted) {
-          router.push(
-            `/${indexName}?appId=${encodeURIComponent(
-              appId
-            )}&writeApiKey=${encodeURIComponent(writeApiKey)}`
-          );
+          router.push(`/${indexName}`);
         } else if (anyFailed) {
           setTasks([]);
         }
