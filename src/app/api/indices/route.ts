@@ -8,6 +8,7 @@ import {
   generateSearchableAttributes,
   generateSortByReplicas,
 } from '@/lib';
+import { trackEvent, flushAnalytics } from '@/lib/analytics';
 
 const schema = z.object({
   indexName: z.string().min(1, 'Index name is required'),
@@ -92,6 +93,28 @@ export async function POST(request: NextRequest) {
           ...replicaTasks,
         ],
       ];
+
+      const recordAttributes = new Set<string>();
+
+      records.forEach((record) => {
+        Object.keys(record).forEach((key) => recordAttributes.add(key));
+      });
+
+      await trackEvent(request, 'Index Created with AI Configuration', {
+        indexName,
+        appId,
+        recordCount: records.length,
+        recordAttributes: Array.from(recordAttributes),
+        generatedConfig: {
+          searchableAttributes,
+          customRanking,
+          attributesForFaceting,
+          sortableAttributes,
+        },
+        taskCount: tasks.length,
+      });
+
+      await flushAnalytics();
 
       return NextResponse.json({
         message: 'Index creation started',

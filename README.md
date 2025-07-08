@@ -17,10 +17,12 @@ Demo of an AI-powered tool that automatically optimizes Algolia search configura
 
 ### Environment Variables
 
-Create a `.env.local` file with your Anthropic API key:
+Create a `.env.local` file with your API keys:
 
 ```bash
 ANTHROPIC_API_KEY=your_anthropic_api_key
+SEGMENT_WRITE_KEY=your_segment_write_key
+NEXT_PUBLIC_SEGMENT_WRITE_KEY=your_segment_write_key
 ```
 
 ### Installation

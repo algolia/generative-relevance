@@ -11,6 +11,8 @@
   "dependencies": {
     "@ai-sdk/anthropic": "^1.2.12",
     "@heroicons/react": "^2.2.0",
+    "@segment/analytics-next": "^1.81.0",
+    "@segment/analytics-node": "^2.2.1",
     "ai": "^4.3.16",
     "algoliasearch": "^5.30.0",
     "next": "15.3.5",
