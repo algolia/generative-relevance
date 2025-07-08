@@ -19,19 +19,16 @@ export type TasksResponse = {
 
 export async function POST(request: NextRequest) {
   try {
-    const { tasks }: { tasks: Task[] } = await request.json();
+    const { tasks, appId, writeApiKey }: { tasks: Task[], appId: string, writeApiKey: string } = await request.json();
 
-    const appId = process.env.ALGOLIA_APP_ID;
-    const adminApiKey = process.env.ALGOLIA_ADMIN_API_KEY;
-
-    if (!appId || !adminApiKey) {
+    if (!appId || !writeApiKey) {
       return NextResponse.json(
-        { error: 'Missing Algolia credentials in environment variables' },
-        { status: 500 }
+        { error: 'Missing Algolia credentials in request body' },
+        { status: 400 }
       );
     }
 
-    const client = algoliasearch(appId, adminApiKey);
+    const client = algoliasearch(appId, writeApiKey);
 
     const tasksWithStatus = await Promise.all(
       tasks.map(async (task) => {

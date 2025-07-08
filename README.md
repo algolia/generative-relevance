@@ -17,11 +17,9 @@ Demo of an AI-powered tool that automatically optimizes Algolia search configura
 
 ### Environment Variables
 
-Create a `.env.local` file with your Algolia credentials:
+Create a `.env.local` file with your Anthropic API key:
 
 ```bash
-ALGOLIA_APP_ID=your_app_id
-ALGOLIA_ADMIN_API_KEY=your_admin_api_key
 ANTHROPIC_API_KEY=your_anthropic_api_key
 ```
 

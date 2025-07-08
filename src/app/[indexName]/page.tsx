@@ -1,7 +1,9 @@
 'use client';
 
+import { useAlgoliaCredentials } from '@/lib';
 import { Hit } from 'algoliasearch';
 import { useParams } from 'next/navigation';
+import { useState } from 'react';
 import useSWR from 'swr';
 
 type IndexSettings = {
@@ -20,19 +22,119 @@ export default function Page() {
   const params = useParams();
   const indexName = params.indexName as string;
 
-  const { data: hitsData, error: hitsError } = useSWR<{ hits: Hit[] }>(
-    indexName ? `/api/indices/${indexName}/hits` : null,
+  const { appId, writeApiKey, updateCredentials } = useAlgoliaCredentials();
+  const [showCredentials, setShowCredentials] = useState(
+    !appId || !writeApiKey
+  );
+
+  const credentialsQuery =
+    appId && writeApiKey
+      ? `?appId=${encodeURIComponent(appId)}&writeApiKey=${encodeURIComponent(
+          writeApiKey
+        )}`
+      : null;
+
+  const {
+    data: hitsData,
+    isLoading: isHitsLoading,
+    error: hitsError,
+  } = useSWR<{ hits: Hit[] }>(
+    indexName && credentialsQuery
+      ? `/api/indices/${indexName}/hits${credentialsQuery}`
+      : null,
     fetcher
   );
 
-  const { data: settings, error: settingsError } = useSWR(
-    indexName ? `/api/indices/${indexName}/settings` : null,
+  const {
+    data: settings,
+    isLoading: isSettingsLoading,
+    error: settingsError,
+  } = useSWR(
+    indexName && credentialsQuery
+      ? `/api/indices/${indexName}/settings${credentialsQuery}`
+      : null,
     fetcher
   );
 
   const hits = hitsData?.hits || [];
-  const loading = !settings && !settingsError && !hitsError;
+  const loading = !settings && !settingsError && !hitsError && credentialsQuery;
   const error = hitsError || settingsError;
+  const isProcessing = isHitsLoading && isSettingsLoading;
+
+  if (showCredentials || !credentialsQuery) {
+    return (
+      <div className="max-w-6xl mx-auto p-6">
+        <h1 className="text-2xl font-bold mb-6">Enter Algolia Credentials</h1>
+        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
+          <p className="text-blue-800">
+            To view the index details, please provide your Algolia credentials.
+          </p>
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label htmlFor="app-id" className="block text-sm font-medium mb-2">
+              Algolia App ID
+            </label>
+            <input
+              id="app-id"
+              type="text"
+              value={appId}
+              onChange={(e) => updateCredentials({ appId: e.target.value })}
+              placeholder="Enter your Algolia App ID..."
+              className="w-full p-3 border border-gray-300 rounded-md"
+              required
+              disabled={isProcessing}
+            />
+          </div>
+          <div>
+            <label
+              htmlFor="write-api-key"
+              className="block text-sm font-medium mb-2"
+            >
+              Algolia Write API Key
+            </label>
+            <input
+              id="write-api-key"
+              type="password"
+              value={writeApiKey}
+              onChange={(e) =>
+                updateCredentials({ writeApiKey: e.target.value })
+              }
+              placeholder="Enter your Algolia Admin API Key..."
+              className="w-full p-3 border border-gray-300 rounded-md"
+              required
+              disabled={isProcessing}
+            />
+            <p className="text-xs text-gray-500 mt-2">
+              <strong>Required ACLs:</strong>{' '}
+              <code className="text-mono bg-red-100 text-red-600 border-red-200 py-0.5 px-1 rounded">
+                search
+              </code>
+              ,{' '}
+              <code className="text-mono bg-red-100 text-red-600 border-red-200 py-0.5 px-1 rounded">
+                addObject
+              </code>
+              ,{' '}
+              <code className="text-mono bg-red-100 text-red-600 border-red-200 py-0.5 px-1 rounded">
+                settings
+              </code>
+              ,{' '}
+              <code className="text-mono bg-red-100 text-red-600 border-red-200 py-0.5 px-1 rounded">
+                editSettings
+              </code>
+            </p>
+          </div>
+        </div>
+        <button
+          onClick={() => setShowCredentials(false)}
+          disabled={!appId || !writeApiKey}
+          className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50"
+        >
+          Load Index
+        </button>
+      </div>
+    );
+  }
 
   if (loading) {
     return (
@@ -47,9 +149,15 @@ export default function Page() {
   if (error) {
     return (
       <div className="max-w-6xl mx-auto p-6">
-        <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
+        <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
           {error.message || 'Failed to load data'}
         </div>
+        <button
+          onClick={() => setShowCredentials(true)}
+          className="px-4 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700"
+        >
+          Update Credentials
+        </button>
       </div>
     );
   }

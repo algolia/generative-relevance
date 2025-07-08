@@ -1,7 +1,4 @@
-import {
-  ChevronDownIcon,
-  MagnifyingGlassIcon,
-} from '@heroicons/react/16/solid';
+import { MagnifyingGlassIcon } from '@heroicons/react/16/solid';
 import type { Metadata } from 'next';
 import { Geist, Geist_Mono } from 'next/font/google';
 
@@ -22,8 +19,6 @@ export const metadata: Metadata = {
 };
 
 export default function RootLayout({ children }: React.PropsWithChildren) {
-  const appId = process.env.ALGOLIA_APP_ID || 'Not configured';
-
   return (
     <html lang="en">
       <body
@@ -36,24 +31,8 @@ export default function RootLayout({ children }: React.PropsWithChildren) {
                 <div className="flex items-center space-x-3">
                   <MagnifyingGlassIcon className="w-8 h-8 text-blue-600" />
                   <h1 className="text-xl font-semibold text-gray-900 whitespace-nowrap">
-                    Algolia Dashboard
+                    Generative Relevance
                   </h1>
-                </div>
-                <div className="flex items-center space-x-4">
-                  <div className="flex items-center space-x-2">
-                    <span className="text-sm text-gray-500 whitespace-nowrap">
-                      App ID
-                    </span>
-                    <div className="relative">
-                      <select
-                        className="appearance-none bg-white border border-gray-300 rounded px-3 py-1 pr-8 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                        defaultValue={appId}
-                      >
-                        <option value={appId}>{appId}</option>
-                      </select>
-                      <ChevronDownIcon className="absolute right-2 top-1/2 transform -translate-y-1/2 w-3 h-3 text-gray-400 pointer-events-none" />
-                    </div>
-                  </div>
                 </div>
               </div>
             </div>

@@ -12,6 +12,8 @@ import {
 const schema = z.object({
   indexName: z.string().min(1, 'Index name is required'),
   records: z.array(z.record(z.any())).min(1, 'At least one record is required'),
+  appId: z.string().min(1, 'Algolia App ID is required'),
+  writeApiKey: z.string().min(1, 'Algolia Admin API Key is required'),
 });
 
 export async function POST(request: NextRequest) {
@@ -26,20 +28,10 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const { indexName, records } = data;
-
-    const appId = process.env.ALGOLIA_APP_ID;
-    const adminApiKey = process.env.ALGOLIA_ADMIN_API_KEY;
-
-    if (!appId || !adminApiKey) {
-      return NextResponse.json(
-        { error: 'Missing Algolia credentials in environment variables' },
-        { status: 500 }
-      );
-    }
+    const { indexName, records, appId, writeApiKey } = data;
 
     try {
-      const client = algoliasearch(appId, adminApiKey);
+      const client = algoliasearch(appId, writeApiKey);
 
       // Step 1: Run everything in parallel — index creation + AI analysis
       const [

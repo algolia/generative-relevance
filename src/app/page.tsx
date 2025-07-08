@@ -6,9 +6,12 @@ import useSWR from 'swr';
 import useSWRMutation from 'swr/mutation';
 
 import { TasksResponse, TaskWithStatus } from './api/tasks/route';
+import { useAlgoliaCredentials } from '@/lib';
 
 export default function Page() {
   const router = useRouter();
+  const { appId, writeApiKey, updateCredentials } = useAlgoliaCredentials();
+
   const [indexName, setIndexName] = useState('');
   const [jsonInput, setJsonInput] = useState('');
   const [tasks, setTasks] = useState<TaskWithStatus[]>([]);
@@ -22,7 +25,11 @@ export default function Page() {
       if (responseTasks?.length > 0) {
         setTasks(responseTasks);
       } else {
-        router.push(`/${responseIndexName}`);
+        router.push(
+          `/${responseIndexName}?appId=${encodeURIComponent(
+            appId
+          )}&writeApiKey=${encodeURIComponent(writeApiKey)}`
+        );
       }
     },
   });
@@ -30,15 +37,20 @@ export default function Page() {
   const shouldFetch = tasks.length > 0;
 
   const { data, error: taskError } = useSWR(
-    shouldFetch ? ['/api/tasks', tasks] : null,
-    ([url, tasks]) => fetchTasks(url, tasks),
+    shouldFetch ? ['/api/tasks', tasks, appId, writeApiKey] : null,
+    ([url, tasks, appId, writeApiKey]) =>
+      fetchTasks(url, tasks, appId, writeApiKey),
     {
       refreshInterval: shouldFetch ? 2000 : 0,
       revalidateOnFocus: false,
       revalidateOnReconnect: false,
       onSuccess: ({ allCompleted, anyFailed }) => {
         if (allCompleted) {
-          router.push(`/${indexName}`);
+          router.push(
+            `/${indexName}?appId=${encodeURIComponent(
+              appId
+            )}&writeApiKey=${encodeURIComponent(writeApiKey)}`
+          );
         } else if (anyFailed) {
           setTasks([]);
         }
@@ -62,13 +74,69 @@ export default function Page() {
           try {
             const records = JSON.parse(jsonInput);
 
-            await trigger({ indexName, records });
+            await trigger({ indexName, records, appId, writeApiKey });
           } catch (err) {
             console.error('JSON parsing error:', err);
           }
         }}
         className="space-y-4"
       >
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label htmlFor="app-id" className="block text-sm font-medium mb-2">
+              Algolia App ID
+            </label>
+            <input
+              id="app-id"
+              type="text"
+              value={appId}
+              onChange={(e) => updateCredentials({ appId: e.target.value })}
+              placeholder="Enter your Algolia App ID..."
+              className="w-full p-3 border border-gray-300 rounded-md"
+              required
+              disabled={isProcessing}
+            />
+          </div>
+          <div>
+            <label
+              htmlFor="write-api-key"
+              className="block text-sm font-medium mb-2"
+            >
+              Algolia Write API Key
+            </label>
+            <input
+              id="write-api-key"
+              type="password"
+              value={writeApiKey}
+              onChange={(e) =>
+                updateCredentials({ writeApiKey: e.target.value })
+              }
+              placeholder="Enter your Algolia Admin API Key..."
+              className="w-full p-3 border border-gray-300 rounded-md"
+              required
+              disabled={isProcessing}
+            />
+            <p className="text-xs text-gray-500 mt-2">
+              <strong>Required ACLs:</strong>{' '}
+              <code className="text-mono bg-red-100 text-red-600 border-red-200 py-0.5 px-1 rounded">
+                search
+              </code>
+              ,{' '}
+              <code className="text-mono bg-red-100 text-red-600 border-red-200 py-0.5 px-1 rounded">
+                addObject
+              </code>
+              ,{' '}
+              <code className="text-mono bg-red-100 text-red-600 border-red-200 py-0.5 px-1 rounded">
+                settings
+              </code>
+              ,{' '}
+              <code className="text-mono bg-red-100 text-red-600 border-red-200 py-0.5 px-1 rounded">
+                editSettings
+              </code>
+            </p>
+          </div>
+        </div>
+
         <div>
           <label
             htmlFor="index-name"
@@ -170,11 +238,16 @@ export default function Page() {
   );
 }
 
-async function fetchTasks(url: string, tasks: TaskWithStatus[]) {
+async function fetchTasks(
+  url: string,
+  tasks: TaskWithStatus[],
+  appId: string,
+  writeApiKey: string
+) {
   const response = await fetch(url, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ tasks }),
+    body: JSON.stringify({ tasks, appId, writeApiKey }),
   });
 
   if (!response.ok) {
@@ -187,6 +260,8 @@ async function fetchTasks(url: string, tasks: TaskWithStatus[]) {
 type CreateIndexParams = {
   indexName: string;
   records: Array<Record<string, unknown>>;
+  appId: string;
+  writeApiKey: string;
 };
 
 async function createIndex(url: string, { arg }: { arg: CreateIndexParams }) {

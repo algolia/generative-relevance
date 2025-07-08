@@ -3,21 +3,21 @@ import { NextRequest, NextResponse } from 'next/server';
 
 type Context = { params: Promise<{ indexName: string }> };
 
-export async function GET(_: NextRequest, { params }: Context) {
+export async function GET(request: NextRequest, { params }: Context) {
   try {
     const { indexName } = await params;
+    const url = new URL(request.url);
+    const appId = url.searchParams.get('appId');
+    const writeApiKey = url.searchParams.get('writeApiKey');
 
-    const appId = process.env.ALGOLIA_APP_ID;
-    const adminApiKey = process.env.ALGOLIA_ADMIN_API_KEY;
-
-    if (!appId || !adminApiKey) {
+    if (!appId || !writeApiKey) {
       return NextResponse.json(
-        { error: 'Missing Algolia credentials in environment variables' },
-        { status: 500 }
+        { error: 'Missing Algolia credentials in query parameters' },
+        { status: 400 }
       );
     }
 
-    const client = algoliasearch(appId, adminApiKey);
+    const client = algoliasearch(appId, writeApiKey);
 
     const { hits } = await client.searchSingleIndex({
       indexName,
