@@ -1,3 +1,4 @@
+export * from './detect-hierarchical-facets';
 export * from './generate-attributes-for-faceting';
 export * from './generate-custom-ranking';
 export * from './generate-searchable-attributes';

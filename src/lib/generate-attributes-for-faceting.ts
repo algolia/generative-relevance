@@ -1,6 +1,7 @@
 import { anthropic } from '@ai-sdk/anthropic';
 import { generateObject } from 'ai';
 import z from 'zod';
+import { detectHierarchicalFacets } from './detect-hierarchical-facets';
 
 const schema = z.object({
   attributesForFaceting: z
@@ -21,11 +22,27 @@ export async function generateAttributesForFaceting(
 ) {
   const sampleRecords = records.slice(0, limit);
 
+  // Detect hierarchical facets with code (more reliable)
+  const hierarchicalFacets = detectHierarchicalFacets(sampleRecords);
+
+  // Create a filtered version of sample records for AI analysis without
+  // hierarchical facet attributes
+  const filteredRecords = sampleRecords.map((record) => {
+    const filtered: Record<string, unknown> = {};
+
+    for (const [key, value] of Object.entries(record)) {
+      if (!hierarchicalFacets.includes(key)) {
+        filtered[key] = value;
+      }
+    }
+    return filtered;
+  });
+
   const prompt = `
     Analyze these sample records and determine which attributes should be configured for faceting in an Algolia search index.
 
     Sample records:
-    ${JSON.stringify(sampleRecords, null, 2)}
+    ${JSON.stringify(filteredRecords, null, 2)}
 
     Facets are filterable categories that allow users to refine search results. Think of them as filters users can apply.
 
@@ -40,7 +57,7 @@ export async function generateAttributesForFaceting(
     - Format/type attributes (format, edition, version)
     - Boolean flags that users might filter by
     - Enumerated values with limited options
-    
+        
     EXCLUDE attributes that are not good for faceting:
     - Unique identifiers (IDs, SKUs, slugs)
     - URLs and links
@@ -66,18 +83,42 @@ export async function generateAttributesForFaceting(
       prompt,
     });
 
-    return object;
+    const attributesForFaceting = [
+      ...hierarchicalFacets,
+      ...object.attributesForFaceting,
+    ];
+
+    const reasoning =
+      hierarchicalFacets.length > 0
+        ? `${
+            object.reasoning
+          } Additionally, detected hierarchical facets: ${hierarchicalFacets.join(
+            ', '
+          )}.`
+        : object.reasoning;
+
+    return {
+      attributesForFaceting,
+      reasoning,
+    };
   } catch (err) {
     console.error('AI faceting analysis error:', err);
 
-    // Fallback: look for common faceting attributes
+    // Fallback: look for common faceting attributes (excluding hierarchical facet objects)
     const firstRecord = sampleRecords[0] || {};
+
     const fallbackFacets = Object.keys(firstRecord)
       .filter((key) => {
         const value = firstRecord[key];
         const isString = typeof value === 'string';
         const isBoolean = typeof value === 'boolean';
+        const isHierarchicalFacet = hierarchicalFacets.includes(key);
         const lowerKey = key.toLowerCase();
+
+        // Skip hierarchical facet objects as they're handled separately
+        if (isHierarchicalFacet) {
+          return false;
+        }
 
         const isFacetAttribute =
           lowerKey.includes('category') ||
@@ -104,10 +145,23 @@ export async function generateAttributesForFaceting(
       })
       .slice(0, 5);
 
+    // Merge with hierarchical facets
+    const allFallbackFacets = [...hierarchicalFacets, ...fallbackFacets];
+
+    const reasoningParts = [
+      'Fallback: Selected string/boolean attributes with faceting-related names',
+    ];
+    if (hierarchicalFacets.length > 0) {
+      reasoningParts.push(
+        `Additionally detected hierarchical facets: ${hierarchicalFacets.join(
+          ', '
+        )}`
+      );
+    }
+
     return {
-      attributesForFaceting: fallbackFacets,
-      reasoning:
-        'Fallback: Selected string/boolean attributes with faceting-related names',
+      attributesForFaceting: allFallbackFacets,
+      reasoning: reasoningParts.join('. '),
     };
   }
 }
