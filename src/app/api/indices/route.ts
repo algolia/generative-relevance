@@ -105,13 +105,12 @@ export async function POST(request: NextRequest) {
         appId,
         recordCount: records.length,
         recordAttributes: Array.from(recordAttributes),
-        generatedConfig: {
+        generatedConfiguration: {
           searchableAttributes,
           customRanking,
           attributesForFaceting,
           sortableAttributes,
         },
-        taskCount: tasks.length,
       });
 
       await flushAnalytics();

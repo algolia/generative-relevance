@@ -1,20 +1,6 @@
 import { Analytics } from '@segment/analytics-node';
 
-let analytics: Analytics | null = null;
-
-function getAnalytics() {
-  if (!analytics) {
-    const writeKey = process.env.SEGMENT_WRITE_KEY;
-
-    if (!writeKey) {
-      console.warn('SEGMENT_WRITE_KEY not found in environment variables');
-
-      return null;
-    }
-    analytics = new Analytics({ writeKey });
-  }
-  return analytics;
-}
+const client = new Analytics({ writeKey: process.env.SEGMENT_WRITE_KEY || '' });
 
 function generateAnonymousId(request: Request): string {
   const userAgent = request.headers.get('user-agent') || '';
@@ -31,21 +17,13 @@ function generateAnonymousId(request: Request): string {
 export async function trackEvent(
   request: Request,
   event: string,
-  properties?: Record<string, unknown>,
-  userId?: string
+  properties?: Record<string, unknown>
 ) {
-  const client = getAnalytics();
-
-  if (!client) {
-    return;
-  }
-
   const anonymousId = generateAnonymousId(request);
 
   try {
     client.track({
-      userId: userId || anonymousId,
-      anonymousId: !userId ? anonymousId : undefined,
+      anonymousId,
       event,
       properties: {
         ...properties,
@@ -60,15 +38,9 @@ export async function trackEvent(
 }
 
 export async function flushAnalytics() {
-  const client = getAnalytics();
-
-  if (!client) {
-    return;
-  }
-
   try {
     await client.flush();
-  } catch (error) {
-    console.error('Failed to flush analytics:', error);
+  } catch (err) {
+    console.error('Failed to flush analytics:', err);
   }
 }
