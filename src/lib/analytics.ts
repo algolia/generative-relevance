@@ -19,6 +19,15 @@ export async function trackEvent(
   event: string,
   properties?: Record<string, unknown>
 ) {
+  if (process.env.NODE_ENV !== 'production') {
+    console.log(
+      'Skipping Segment event in non-production environment:',
+      event,
+      properties
+    );
+    return;
+  }
+
   const anonymousId = generateAnonymousId(request);
 
   try {
@@ -38,6 +47,10 @@ export async function trackEvent(
 }
 
 export async function flushAnalytics() {
+  if (process.env.NODE_ENV !== 'production') {
+    return;
+  }
+
   try {
     await client.flush();
   } catch (err) {
