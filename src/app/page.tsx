@@ -7,6 +7,7 @@ import useSWRMutation from 'swr/mutation';
 
 import { TasksResponse, TaskWithStatus } from './api/tasks/route';
 import { useAlgoliaCredentials } from '@/lib';
+import { getAuthHeaders } from '@/lib/auth';
 
 export default function Page() {
   const router = useRouter();
@@ -238,7 +239,10 @@ async function fetchTasks(
 ) {
   const response = await fetch(url, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: { 
+      'Content-Type': 'application/json',
+      ...getAuthHeaders()
+    },
     body: JSON.stringify({ tasks, appId, writeApiKey }),
   });
 
@@ -259,7 +263,10 @@ type CreateIndexParams = {
 async function createIndex(url: string, { arg }: { arg: CreateIndexParams }) {
   const response = await fetch(url, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: { 
+      'Content-Type': 'application/json',
+      ...getAuthHeaders()
+    },
     body: JSON.stringify(arg),
   });
 
