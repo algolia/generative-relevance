@@ -31,6 +31,8 @@ export async function generateSortByReplicas(
 
     Rules for selecting sorting attributes:
     
+    IMPORTANT: Only suggest attributes that are truly suitable for sorting. If no attributes are clearly sortable, return an empty array.
+    
     INCLUDE numeric attributes that users commonly sort by:
     - Prices, costs, amounts (price, cost, total, fee)
     - Dates and timestamps (created_at, published_date, release_date, updated_at)
@@ -54,6 +56,7 @@ export async function generateSortByReplicas(
     4. Exist consistently across records
     
     Limit to 3-5 attributes maximum for optimal user experience.
+    If no attributes are suitable for sorting, return an empty array.
   `;
 
   try {

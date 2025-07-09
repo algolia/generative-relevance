@@ -48,6 +48,8 @@ export async function generateAttributesForFaceting(
 
     Rules for selecting faceting attributes:
     
+    IMPORTANT: Only suggest attributes that are truly suitable for faceting. It's better to return an empty array than to force inappropriate attributes.
+    
     INCLUDE attributes that are good for filtering:
     - Category/type fields (genre, category, department, section)
     - Brand, manufacturer, designer, author, artist names
@@ -71,7 +73,7 @@ export async function generateAttributesForFaceting(
     - Use "searchable(attribute)" for facets with many values (brands with 10s of options)
     - Use "filterOnly(attribute)" for facets used only programmatically, not displayed
     
-    Prioritize attributes that users would commonly want to filter by.
+    If no attributes are suitable for faceting, return an empty array. Quality over quantity.
   `;
 
   try {
@@ -105,6 +107,7 @@ export async function generateAttributesForFaceting(
     console.error('AI faceting analysis error:', err);
 
     // Fallback: look for common faceting attributes (excluding hierarchical facet objects)
+    // Only suggest attributes that clearly indicate faceting potential
     const firstRecord = sampleRecords[0] || {};
 
     const fallbackFacets = Object.keys(firstRecord)
@@ -120,6 +123,7 @@ export async function generateAttributesForFaceting(
           return false;
         }
 
+        // Only include attributes with clear faceting indicators
         const isFacetAttribute =
           lowerKey.includes('category') ||
           lowerKey.includes('brand') ||
@@ -131,26 +135,39 @@ export async function generateAttributesForFaceting(
           lowerKey.includes('author') ||
           lowerKey.includes('designer');
 
-        const isNotExcluded =
-          !lowerKey.includes('id') &&
-          !lowerKey.includes('url') &&
-          !lowerKey.includes('description') &&
-          !key.startsWith('_');
+        // Exclude obvious non-faceting attributes
+        const isExcluded =
+          lowerKey.includes('id') ||
+          lowerKey.includes('url') ||
+          lowerKey.includes('description') ||
+          lowerKey.includes('title') ||
+          lowerKey.includes('name') ||
+          lowerKey.includes('text') ||
+          key.startsWith('_');
 
+        // Only return attributes that clearly indicate faceting potential
         return (
           (isString || isBoolean) &&
-          (isFacetAttribute || isNotExcluded) &&
+          isFacetAttribute &&
+          !isExcluded &&
           value !== null
         );
       })
-      .slice(0, 5);
+      .slice(0, 3); // Reduced from 5 to 3 to be more conservative
 
     // Merge with hierarchical facets
     const allFallbackFacets = [...hierarchicalFacets, ...fallbackFacets];
 
-    const reasoningParts = [
-      'Fallback: Selected string/boolean attributes with faceting-related names',
-    ];
+    const reasoningParts = [];
+
+    if (fallbackFacets.length > 0) {
+      reasoningParts.push(
+        'Fallback: Selected attributes with clear faceting indicators'
+      );
+    } else {
+      reasoningParts.push('Fallback: No suitable faceting attributes detected');
+    }
+
     if (hierarchicalFacets.length > 0) {
       reasoningParts.push(
         `Additionally detected hierarchical facets: ${hierarchicalFacets.join(

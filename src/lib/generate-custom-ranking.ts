@@ -27,6 +27,8 @@ export async function generateCustomRanking(
 
     Rules for selecting custom ranking attributes:
     
+    IMPORTANT: Only suggest attributes that are truly suitable for ranking. If no attributes clearly indicate quality or relevance, return an empty array.
+    
     INCLUDE numeric/boolean attributes that indicate quality or relevance:
     - Sales counts, purchase counts, order counts
     - View counts, click counts, impression counts
@@ -50,6 +52,7 @@ export async function generateCustomRanking(
     - Use "asc(attribute)" for attributes where lower values are better (rank position, priority level)
     
     Return attributes in order of ranking importance (most important first).
+    If no attributes are suitable for ranking, return an empty array.
   `;
 
   try {

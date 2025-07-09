@@ -25,6 +25,8 @@ export async function generateSearchableAttributes(
 
     Rules for selecting searchable attributes:
     
+    IMPORTANT: Only suggest attributes that are truly suitable for search. If no attributes are clearly searchable, return an empty array.
+    
     INCLUDE attributes that are:
     - Descriptive text attributes (name, title, description, summary, bio, content)
     - Brand, manufacturer, or company names
@@ -48,6 +50,7 @@ export async function generateSearchableAttributes(
     Consider the context and type of data to make intelligent decisions.
     
     Return the attributes in order of search importance (most important first).
+    If no attributes are suitable for search, return an empty array.
   `;
 
   try {
