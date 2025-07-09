@@ -18,8 +18,8 @@ export function middleware(request: NextRequest) {
   );
   const [username, password] = credentials.split(':');
 
-  const validUsername = process.env.NEXT_PUBLIC_BASIC_AUTH_USERNAME;
-  const validPassword = process.env.NEXT_PUBLIC_BASIC_AUTH_PASSWORD;
+  const validUsername = process.env.BASIC_AUTH_USERNAME;
+  const validPassword = process.env.BASIC_AUTH_PASSWORD;
 
   if (username === validUsername && password === validPassword) {
     return NextResponse.next();

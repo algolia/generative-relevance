@@ -1,7 +1,6 @@
 'use client';
 
 import { useAlgoliaCredentials } from '@/lib';
-import { getAuthHeaders } from '@/lib/auth';
 import { Hit } from 'algoliasearch';
 import { useParams } from 'next/navigation';
 import { useState } from 'react';
@@ -424,10 +423,7 @@ function ConfigurationPanel({ settings }: ConfigurationPanelProps) {
 
       const response = await fetch(url, {
         method: 'POST',
-        headers: { 
-          'Content-Type': 'application/json',
-          ...getAuthHeaders()
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           indexName,
           appId,
@@ -577,9 +573,7 @@ function ConfigurationPanel({ settings }: ConfigurationPanelProps) {
 }
 
 async function fetcher(url: string) {
-  const response = await fetch(url, {
-    headers: getAuthHeaders(),
-  });
+  const response = await fetch(url);
 
   if (!response.ok) {
     throw new Error('Failed to fetch');
