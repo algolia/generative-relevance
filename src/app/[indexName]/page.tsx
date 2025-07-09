@@ -5,6 +5,7 @@ import { Hit } from 'algoliasearch';
 import { useParams } from 'next/navigation';
 import { useState } from 'react';
 import useSWR from 'swr';
+import useSWRMutation from 'swr/mutation';
 
 type IndexSettings = {
   searchableAttributes: string[];
@@ -289,7 +290,172 @@ type ConfigurationPanelProps = {
   settings: IndexSettings;
 };
 
+type ConfigurationType =
+  | 'searchableAttributes'
+  | 'customRanking'
+  | 'attributesForFaceting'
+  | 'sortableAttributes';
+
+function FeedbackButtons({
+  configurationType,
+  title,
+  feedbackState,
+  showFeedbackForm,
+  setShowFeedbackForm,
+  feedbackText,
+  setFeedbackText,
+  onFeedback,
+  isSubmitting,
+}: {
+  configurationType: ConfigurationType;
+  title: string;
+  feedbackState: Record<string, string>;
+  showFeedbackForm: string | null;
+  setShowFeedbackForm: (value: string | null) => void;
+  feedbackText: string;
+  setFeedbackText: (value: string) => void;
+  onFeedback: (
+    configurationType: ConfigurationType,
+    feedback: 'upvote' | 'downvote',
+    explanation?: string
+  ) => void;
+  isSubmitting: boolean;
+}) {
+  const currentFeedback = feedbackState[configurationType];
+  const isFormOpen = showFeedbackForm === configurationType;
+
+  return (
+    <div className="mt-2">
+      <div className="flex items-center gap-2">
+        <button
+          onClick={() => onFeedback(configurationType, 'upvote')}
+          className={`flex items-center gap-1 px-2 py-1 rounded text-xs ${
+            currentFeedback === 'upvote'
+              ? 'bg-green-100 text-green-700'
+              : 'bg-gray-100 text-gray-600 hover:bg-green-50'
+          }`}
+          disabled={isSubmitting}
+        >
+          👍 Good
+        </button>
+        <button
+          onClick={() => setShowFeedbackForm(configurationType)}
+          className={`flex items-center gap-1 px-2 py-1 rounded text-xs ${
+            currentFeedback === 'downvote'
+              ? 'bg-red-100 text-red-700'
+              : 'bg-gray-100 text-gray-600 hover:bg-red-50'
+          }`}
+          disabled={isSubmitting}
+        >
+          👎 Needs work
+        </button>
+      </div>
+
+      {isFormOpen && (
+        <div className="mt-2 p-3 bg-white rounded border">
+          <p className="text-sm text-gray-700 mb-2">
+            Why doesn&apos;t this {title.toLowerCase()} work well?
+          </p>
+          <textarea
+            value={feedbackText}
+            onChange={(e) => setFeedbackText(e.target.value)}
+            placeholder="Please explain what could be improved..."
+            className="w-full p-2 border rounded text-sm"
+            rows={3}
+          />
+          <div className="flex gap-2 mt-2">
+            <button
+              onClick={() =>
+                onFeedback(configurationType, 'downvote', feedbackText)
+              }
+              disabled={isSubmitting}
+              className="px-3 py-1 bg-red-600 text-white rounded text-sm hover:bg-red-700 disabled:opacity-50"
+            >
+              {isSubmitting ? 'Submitting...' : 'Submit'}
+            </button>
+            <button
+              onClick={() => {
+                setShowFeedbackForm(null);
+                setFeedbackText('');
+              }}
+              className="px-3 py-1 bg-gray-300 text-gray-700 rounded text-sm hover:bg-gray-400"
+            >
+              Cancel
+            </button>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
 function ConfigurationPanel({ settings }: ConfigurationPanelProps) {
+  const params = useParams();
+  const indexName = params.indexName as string;
+  const { appId } = useAlgoliaCredentials();
+
+  const [feedbackState, setFeedbackState] = useState<Record<string, string>>(
+    {}
+  );
+  const [showFeedbackForm, setShowFeedbackForm] = useState<string | null>(null);
+  const [feedbackText, setFeedbackText] = useState('');
+
+  const { trigger: submitFeedback, isMutating: isSubmitting } = useSWRMutation(
+    '/api/configuration-feedback',
+    async (
+      url: string,
+      {
+        arg,
+      }: {
+        arg: {
+          configurationType: ConfigurationType;
+          feedback: 'upvote' | 'downvote';
+          explanation?: string;
+        };
+      }
+    ) => {
+      const { configurationType, feedback, explanation } = arg;
+
+      const generatedConfig =
+        configurationType === 'sortableAttributes'
+          ? Array.from(new Set(settings.sortReplicas.map((r) => r.attribute)))
+          : settings[configurationType];
+
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          indexName,
+          appId,
+          configurationType,
+          feedback,
+          explanation,
+          generatedConfig,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to submit feedback');
+      }
+
+      return response.json();
+    }
+  );
+
+  const handleFeedback = async (
+    configurationType: ConfigurationType,
+    feedback: 'upvote' | 'downvote',
+    explanation?: string
+  ) => {
+    try {
+      await submitFeedback({ configurationType, feedback, explanation });
+      setFeedbackState((prev) => ({ ...prev, [configurationType]: feedback }));
+      setShowFeedbackForm(null);
+      setFeedbackText('');
+    } catch (error) {
+      console.error('Failed to submit feedback:', error);
+    }
+  };
   return (
     <div className="mb-6 bg-gradient-to-r from-blue-50 to-purple-50 border border-blue-200 rounded-lg p-4">
       <div className="flex items-center mb-3">
@@ -300,27 +466,66 @@ function ConfigurationPanel({ settings }: ConfigurationPanelProps) {
       </div>
 
       {settings.searchableAttributes.length > 0 && (
-        <AttributeSection
-          title="Searchable Attributes"
-          attributes={settings.searchableAttributes}
-          colorClass="bg-blue-100 text-blue-800 border-blue-200"
-        />
+        <div className="mb-3">
+          <AttributeSection
+            title="Searchable Attributes"
+            attributes={settings.searchableAttributes}
+            colorClass="bg-blue-100 text-blue-800 border-blue-200"
+          />
+          <FeedbackButtons
+            configurationType="searchableAttributes"
+            title="Searchable Attributes"
+            feedbackState={feedbackState}
+            showFeedbackForm={showFeedbackForm}
+            setShowFeedbackForm={setShowFeedbackForm}
+            feedbackText={feedbackText}
+            setFeedbackText={setFeedbackText}
+            onFeedback={handleFeedback}
+            isSubmitting={isSubmitting}
+          />
+        </div>
       )}
 
       {settings.customRanking.length > 0 && (
-        <AttributeSection
-          title="Custom Ranking"
-          attributes={settings.customRanking}
-          colorClass="bg-purple-100 text-purple-800 border-purple-200"
-        />
+        <div className="mb-3">
+          <AttributeSection
+            title="Custom Ranking"
+            attributes={settings.customRanking}
+            colorClass="bg-purple-100 text-purple-800 border-purple-200"
+          />
+          <FeedbackButtons
+            configurationType="customRanking"
+            title="Custom Ranking"
+            feedbackState={feedbackState}
+            showFeedbackForm={showFeedbackForm}
+            setShowFeedbackForm={setShowFeedbackForm}
+            feedbackText={feedbackText}
+            setFeedbackText={setFeedbackText}
+            onFeedback={handleFeedback}
+            isSubmitting={isSubmitting}
+          />
+        </div>
       )}
 
       {settings.attributesForFaceting.length > 0 && (
-        <AttributeSection
-          title="Faceting Attributes"
-          attributes={settings.attributesForFaceting}
-          colorClass="bg-green-100 text-green-800 border-green-200"
-        />
+        <div className="mb-3">
+          <AttributeSection
+            title="Faceting Attributes"
+            attributes={settings.attributesForFaceting}
+            colorClass="bg-green-100 text-green-800 border-green-200"
+          />
+          <FeedbackButtons
+            configurationType="attributesForFaceting"
+            title="Faceting Attributes"
+            feedbackState={feedbackState}
+            showFeedbackForm={showFeedbackForm}
+            setShowFeedbackForm={setShowFeedbackForm}
+            feedbackText={feedbackText}
+            setFeedbackText={setFeedbackText}
+            onFeedback={handleFeedback}
+            isSubmitting={isSubmitting}
+          />
+        </div>
       )}
 
       {settings.sortReplicas.length > 0 && (
@@ -344,6 +549,17 @@ function ConfigurationPanel({ settings }: ConfigurationPanelProps) {
           <div className="text-xs text-gray-500 mt-1">
             Created {settings.sortReplicas.length} replica indices for sorting
           </div>
+          <FeedbackButtons
+            configurationType="sortableAttributes"
+            title="Sort Options"
+            feedbackState={feedbackState}
+            showFeedbackForm={showFeedbackForm}
+            setShowFeedbackForm={setShowFeedbackForm}
+            feedbackText={feedbackText}
+            setFeedbackText={setFeedbackText}
+            onFeedback={handleFeedback}
+            isSubmitting={isSubmitting}
+          />
         </div>
       )}
 
