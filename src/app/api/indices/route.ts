@@ -38,10 +38,10 @@ export async function POST(request: NextRequest) {
       const [
         batchResponse,
         [
-          { searchableAttributes },
-          { customRanking },
-          { attributesForFaceting },
-          { sortableAttributes },
+          { searchableAttributes, reasoning: searchableReasoning },
+          { customRanking, reasoning: customRankingReasoning },
+          { attributesForFaceting, reasoning: attributesForFacetingReasoning },
+          { sortableAttributes, reasoning: sortableReasoning },
         ],
       ] = await Promise.all([
         // Chain: Create index → Wait for tasks to complete → Return batch response
@@ -106,10 +106,22 @@ export async function POST(request: NextRequest) {
         recordCount: records.length,
         recordAttributes: Array.from(recordAttributes),
         generatedConfiguration: {
-          searchableAttributes,
-          customRanking,
-          attributesForFaceting,
-          sortableAttributes,
+          searchableAttributes: {
+            data: searchableAttributes,
+            reasoning: searchableReasoning,
+          },
+          customRanking: {
+            data: customRanking,
+            reasoning: customRankingReasoning,
+          },
+          attributesForFaceting: {
+            data: attributesForFaceting,
+            reasoning: attributesForFacetingReasoning,
+          },
+          sortableAttributes: {
+            data: sortableAttributes,
+            reasoning: sortableReasoning,
+          },
         },
       });
 
