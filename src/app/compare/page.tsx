@@ -198,98 +198,91 @@ export default function ComparePage() {
 
       {currentSettings && suggestedSettings && (
         <div className="space-y-6">
-          <h2 className="text-lg font-medium">
-            {currentSettings.indexName} • {hitsData?.hits?.length || 0} records
-          </h2>
-
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-            <ConfigSection
-              title="Current"
-              currentSettings={currentSettings}
-              bgColor="bg-gray-50"
-            />
-            <ConfigSection
-              title="AI Suggestions"
-              suggestedSettings={suggestedSettings}
-              bgColor="bg-blue-50"
-            />
+          <div className="text-center">
+            <h2 className="text-xl font-semibold mb-2">
+              Configuration Comparison
+            </h2>
+            <p className="text-gray-600">
+              Index: {currentSettings.indexName} • {hitsData?.hits?.length || 0} records
+            </p>
           </div>
 
-          <ConfigurationSummary
-            current={currentSettings}
-            suggested={suggestedSettings}
-          />
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-start">
+            <div className="bg-gray-50 border-gray-200 border rounded-lg p-4 h-full flex flex-col">
+              <h3 className="text-lg font-semibold text-gray-800 mb-4">
+                Current Configuration
+              </h3>
+              <div className="space-y-4 grid grid-rows-4 flex-1">
+                <AttributeGroup
+                  title="Searchable Attributes"
+                  icon="🔍"
+                  attributes={currentSettings?.searchableAttributes || []}
+                />
+                <AttributeGroup
+                  title="Custom Ranking"
+                  icon="📊"
+                  attributes={currentSettings?.customRanking || []}
+                />
+                <AttributeGroup
+                  title="Attributes for Faceting"
+                  icon="🏷️"
+                  attributes={currentSettings?.attributesForFaceting || []}
+                />
+                <AttributeGroup
+                  title="Sortable Attributes"
+                  icon="🔀"
+                  attributes={currentSettings?.sortReplicas?.map(r => r.attribute) || []}
+                />
+              </div>
+            </div>
+            <div className="bg-blue-50 border-blue-200 border rounded-lg p-4 h-full flex flex-col">
+              <h3 className="text-lg font-semibold text-blue-800 mb-4">
+                AI-Generated Suggestions
+              </h3>
+              <div className="space-y-4 grid grid-rows-4 flex-1">
+                <AttributeGroup
+                  title="Searchable Attributes"
+                  icon="🔍"
+                  attributes={suggestedSettings?.searchableAttributes.data || []}
+                  reasoning={suggestedSettings?.searchableAttributes.reasoning}
+                />
+                <AttributeGroup
+                  title="Custom Ranking"
+                  icon="📊"
+                  attributes={suggestedSettings?.customRanking.data || []}
+                  reasoning={suggestedSettings?.customRanking.reasoning}
+                />
+                <AttributeGroup
+                  title="Attributes for Faceting"
+                  icon="🏷️"
+                  attributes={suggestedSettings?.attributesForFaceting.data || []}
+                  reasoning={suggestedSettings?.attributesForFaceting.reasoning}
+                />
+                <AttributeGroup
+                  title="Sortable Attributes"
+                  icon="🔀"
+                  attributes={suggestedSettings?.sortableAttributes.data || []}
+                  reasoning={suggestedSettings?.sortableAttributes.reasoning}
+                />
+              </div>
+            </div>
+          </div>
+
+          <div className="mt-8 bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+            <h3 className="text-lg font-semibold text-yellow-800 mb-4">
+              📊 Configuration Summary
+            </h3>
+            <ConfigurationSummary
+              current={currentSettings}
+              suggested={suggestedSettings}
+            />
+          </div>
         </div>
       )}
     </div>
   );
 }
 
-type ConfigSectionProps = {
-  title: string;
-  currentSettings?: IndexSettings;
-  suggestedSettings?: AISuggestion;
-  bgColor: string;
-};
-
-function ConfigSection({
-  title,
-  currentSettings,
-  suggestedSettings,
-  bgColor,
-}: ConfigSectionProps) {
-  const sections = [
-    {
-      name: 'Searchable',
-      icon: '🔍',
-      data:
-        currentSettings?.searchableAttributes ||
-        suggestedSettings?.searchableAttributes.data,
-      reasoning: suggestedSettings?.searchableAttributes.reasoning,
-    },
-    {
-      name: 'Ranking',
-      icon: '📊',
-      data:
-        currentSettings?.customRanking || suggestedSettings?.customRanking.data,
-      reasoning: suggestedSettings?.customRanking?.reasoning,
-    },
-    {
-      name: 'Faceting',
-      icon: '🏷️',
-      data:
-        currentSettings?.attributesForFaceting ||
-        suggestedSettings?.attributesForFaceting.data,
-      reasoning: suggestedSettings?.attributesForFaceting.reasoning,
-    },
-    {
-      name: 'Sortable',
-      icon: '🔀',
-      data:
-        currentSettings?.sortReplicas.map((r) => r.attribute) ||
-        suggestedSettings?.sortableAttributes.data,
-      reasoning: suggestedSettings?.sortableAttributes?.reasoning,
-    },
-  ];
-
-  return (
-    <div className={`${bgColor} border rounded p-4`}>
-      <h3 className="font-medium mb-4">{title}</h3>
-      <div className="space-y-4">
-        {sections.map((section) => (
-          <AttributeGroup
-            key={section.name}
-            title={section.name}
-            icon={section.icon}
-            // @ts-expect-error It won't be undefined
-            attributes={section.data}
-            reasoning={section.reasoning}
-          />
-        ))}
-      </div>
-    </div>
-  );
-}
 
 function AttributeGroup({
   title,
@@ -304,32 +297,43 @@ function AttributeGroup({
 }) {
   const [showReasoning, setShowReasoning] = useState(false);
 
+  if (attributes.length === 0) {
+    return (
+      <div className="mb-4">
+        <h4 className="text-sm font-medium text-gray-700 mb-2">
+          {icon} {title}
+        </h4>
+        <p className="text-sm text-gray-500 italic">No attributes configured</p>
+      </div>
+    );
+  }
+
   return (
-    <div>
-      <h4 className="text-sm font-medium mb-2">
+    <div className="mb-4">
+      <h4 className="text-sm font-medium text-gray-700 mb-2">
         {icon} {title}
       </h4>
-      {attributes.length === 0 ? (
-        <p className="text-xs text-gray-500">None</p>
-      ) : (
-        <div className="flex flex-wrap gap-1 mb-2">
-          {attributes.map((attr, i) => (
-            <span key={i} className="bg-white px-2 py-1 rounded text-xs border">
-              {attr}
-            </span>
-          ))}
-        </div>
-      )}
+      <div className="flex flex-wrap gap-2 mb-2">
+        {attributes.map((attr, index) => (
+          <span
+            key={`${attr}-${index}`}
+            className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-white border border-gray-200"
+          >
+            <span className="text-gray-600 mr-1">{index + 1}.</span>
+            {attr}
+          </span>
+        ))}
+      </div>
       {reasoning && (
-        <div>
+        <div className="mt-2">
           <button
             onClick={() => setShowReasoning(!showReasoning)}
-            className="text-xs text-blue-600 hover:underline"
+            className="text-xs text-blue-600 hover:text-blue-800 focus:outline-none"
           >
-            {showReasoning ? 'Hide' : 'Show'} reasoning
+            {showReasoning ? '▼ Hide reasoning' : '▶ Show reasoning'}
           </button>
           {showReasoning && (
-            <div className="mt-1 text-xs text-gray-600 pl-2 border-l-2">
+            <div className="text-xs text-gray-600 mt-1 pl-3 border-l-2 border-gray-200 prose prose-xs max-w-none">
               <ReactMarkdown>{reasoning}</ReactMarkdown>
             </div>
           )}
@@ -350,72 +354,105 @@ function ConfigurationSummary({
 }: ConfigurationSummaryProps) {
   if (!current || !suggested) return null;
 
-  const sections = [
-    {
-      name: 'Searchable',
-      current: current.searchableAttributes || [],
-      suggested: suggested.searchableAttributes?.data || [],
-    },
-    {
-      name: 'Ranking',
-      current: current.customRanking || [],
-      suggested: suggested.customRanking?.data || [],
-    },
-    {
-      name: 'Faceting',
-      current: current.attributesForFaceting || [],
-      suggested: suggested.attributesForFaceting?.data || [],
-    },
-    {
-      name: 'Sortable',
-      current: current.sortReplicas?.map((r) => r.attribute) || [],
-      suggested: suggested.sortableAttributes?.data || [],
-    },
+  const generateDiff = (
+    currentItems: string[],
+    suggestedItems: string[],
+    title: string
+  ) => {
+    const currentSet = new Set(currentItems || []);
+    const suggestedSet = new Set(suggestedItems || []);
+
+    const added = suggestedItems.filter((item) => !currentSet.has(item));
+    const removed = currentItems.filter((item) => !suggestedSet.has(item));
+    const unchanged = currentItems.filter((item) => suggestedSet.has(item));
+
+    return { added, removed, unchanged, title };
+  };
+
+  const diffs = [
+    generateDiff(
+      current.searchableAttributes || [],
+      suggested.searchableAttributes?.data || [],
+      'Searchable Attributes'
+    ),
+    generateDiff(
+      current.customRanking || [],
+      suggested.customRanking?.data || [],
+      'Custom Ranking'
+    ),
+    generateDiff(
+      current.attributesForFaceting || [],
+      suggested.attributesForFaceting?.data || [],
+      'Attributes for Faceting'
+    ),
+    generateDiff(
+      current.sortReplicas?.map((r) => r.attribute) || [],
+      suggested.sortableAttributes?.data || [],
+      'Sortable Attributes'
+    ),
   ];
 
   return (
-    <div className="bg-yellow-50 border rounded p-4">
-      <h3 className="font-medium mb-4">Changes Summary</h3>
-      <div className="space-y-3">
-        {sections.map((section) => {
-          const currentSet = new Set(section.current);
-          const suggestedSet = new Set(section.suggested);
-          const added = section.suggested.filter(
-            (item) => !currentSet.has(item)
-          );
-          const removed = section.current.filter(
-            (item) => !suggestedSet.has(item)
-          );
-
-          if (added.length === 0 && removed.length === 0) return null;
-
-          return (
-            <div key={section.name} className="text-sm">
-              <div className="font-medium mb-1">{section.name}</div>
-              {added.length > 0 && (
-                <div className="flex gap-1 mb-1">
-                  <span className="text-green-600">+</span>
-                  {added.map((item, i) => (
-                    <span key={i} className="bg-green-100 px-1 rounded text-xs">
+    <div className="space-y-4">
+      {diffs.map((diff, index) => (
+        <div key={index} className="border-l-4 border-yellow-300 pl-4">
+          <h4 className="font-medium text-yellow-800 mb-2">{diff.title}</h4>
+          <div className="space-y-1 text-sm">
+            {diff.added.length > 0 && (
+              <div className="flex items-start gap-2">
+                <span className="text-green-600 font-medium">+</span>
+                <div className="flex flex-wrap gap-1">
+                  {diff.added.map((item, i) => (
+                    <span
+                      key={i}
+                      className="bg-green-100 text-green-800 px-2 py-1 rounded text-xs"
+                    >
                       {item}
                     </span>
                   ))}
                 </div>
-              )}
-              {removed.length > 0 && (
-                <div className="flex gap-1">
-                  <span className="text-red-600">-</span>
-                  {removed.map((item, i) => (
-                    <span key={i} className="bg-red-100 px-1 rounded text-xs">
+              </div>
+            )}
+            {diff.removed.length > 0 && (
+              <div className="flex items-start gap-2">
+                <span className="text-red-600 font-medium">-</span>
+                <div className="flex flex-wrap gap-1">
+                  {diff.removed.map((item, i) => (
+                    <span
+                      key={i}
+                      className="bg-red-100 text-red-800 px-2 py-1 rounded text-xs"
+                    >
                       {item}
                     </span>
                   ))}
                 </div>
+              </div>
+            )}
+            {diff.unchanged.length > 0 && (
+              <div className="flex items-start gap-2">
+                <span className="text-gray-600 font-medium">=</span>
+                <div className="flex flex-wrap gap-1">
+                  {diff.unchanged.map((item, i) => (
+                    <span
+                      key={i}
+                      className="bg-gray-100 text-gray-800 px-2 py-1 rounded text-xs"
+                    >
+                      {item}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            )}
+            {diff.added.length === 0 &&
+              diff.removed.length === 0 &&
+              diff.unchanged.length === 0 && (
+                <span className="text-gray-500 text-xs italic">
+                  No configuration
+                </span>
               )}
-            </div>
-          );
-        })}
-      </div>
+          </div>
+        </div>
+      ))}
     </div>
   );
 }
