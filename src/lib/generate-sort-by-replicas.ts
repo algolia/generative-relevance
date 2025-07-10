@@ -49,13 +49,22 @@ export async function generateSortByReplicas(
     - Internal metadata
     - Attributes used primarily for custom ranking
     
-    Focus on attributes that:
-    1. Have numeric values
-    2. Users would naturally want to sort by (price, date, rating)
-    3. Have meaningful ordering (not random values)
-    4. Exist consistently across records
+    AVOID DUPLICATES AND SIMILAR ATTRIBUTES:
+    - If multiple price-related attributes exist (price, cost, amount, total), choose the most user-friendly one (typically "price")
+    - If multiple date attributes exist (created_at, updated_at, published_date), choose the most relevant for end users (typically publication or creation date)
+    - If multiple rating attributes exist (rating, score, stars), choose the most commonly understood one (typically "rating" or "stars")
+    - If multiple count attributes exist (views, likes, downloads), choose the most meaningful for sorting (typically the primary engagement metric)
     
-    Limit to 3-5 attributes maximum for optimal user experience.
+    Focus on attributes that:
+    1. Have numeric values with meaningful ordering
+    2. Users would naturally want to sort by (price, date, rating)
+    3. Are user-friendly and commonly understood
+    4. Exist consistently across records
+    5. Are distinct from each other (no similar attributes)
+    
+    Prioritize end-user usability over technical completeness. Choose the single best attribute from each category rather than multiple similar ones.
+    
+    Limit to 3-4 attributes maximum for optimal user experience.
     If no attributes are suitable for sorting, return an empty array.
   `;
 
