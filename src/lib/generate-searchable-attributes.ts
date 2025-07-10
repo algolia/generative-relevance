@@ -46,10 +46,31 @@ export async function generateSearchableAttributes(
     - Display-only attributes (thumbnails, status codes)
     - Internal metadata
     
-    Focus on attributes that users would naturally search for when looking for these items.
-    Consider the context and type of data to make intelligent decisions.
+    CRITICAL - ATTRIBUTE ORDERING FOR SEARCH RELEVANCE:
+    Order matters significantly in searchable attributes. Attributes listed first have higher search relevance.
     
-    Return the attributes in order of search importance (most important first).
+    Compare each attribute pair and determine which should rank higher based on user search intent:
+    - For movies: "cast" often ranks higher than "director" (users search for actors more than directors)
+    - For products: "name" or "title" usually ranks highest, followed by "brand", then "description"
+    - For articles: "title" ranks higher than "author" which ranks higher than "content"
+    - For people: "name" ranks higher than "bio" or "description"
+    
+    EQUAL RANKING ATTRIBUTES:
+    To make matches in multiple attributes rank equally, combine them in comma-separated strings:
+    - "title,alternate_title" - treats both title fields equally
+    - "name,display_name" - treats both name fields equally
+    - "brand,manufacturer" - treats both brand fields equally
+    
+    ORDERING STRATEGY:
+    1. Start with the most commonly searched attribute (usually primary name/title)
+    2. Add secondary identifiers (alternate names, brands, creators)
+    3. Include content attributes (descriptions, features, tags)
+    4. Consider user search patterns specific to this data type
+    
+    Focus on attributes that users would naturally search for when looking for these items.
+    Consider the context and type of data to make intelligent decisions about search priority.
+    
+    Return the attributes in precise order of search importance (most important first).
     If no attributes are suitable for search, return an empty array.
   `;
 
