@@ -61,16 +61,42 @@ export async function generateSearchableAttributes(
     - "name,display_name" - treats both name fields equally
     - "brand,manufacturer" - treats both brand fields equally
     
+    ORDERED VS UNORDERED ATTRIBUTES:
+    Configure each attribute as ordered or unordered based on whether word position matters:
+    
+    UNORDERED (recommended for most cases):
+    - Position of match within attribute doesn't affect ranking
+    - Use when any word match is equally valuable regardless of position
+    - Examples: "unordered(title)", "unordered(description)", "unordered(tags)"
+    - Best for: names, descriptions, feature lists, tags, categories
+    
+    ORDERED (use sparingly - only when position truly matters):
+    - Matches at beginning of attribute rank higher than matches at end
+    - Use when early words are more important than later words
+    - Examples: "ordered(title)" for hierarchical titles, "ordered(address)" for addresses
+    - Best for: hierarchical data, addresses, structured content where order indicates importance
+    
+    GENERAL RULE: Use unordered unless you have a specific reason to prioritize early matches.
+    Most attributes should be unordered since word position typically doesn't matter for search relevance.
+    
+    ATTRIBUTE FORMAT EXAMPLES:
+    - "unordered(title)" - standard title search
+    - "unordered(description)" - content description
+    - "unordered(cast,actors)" - equal ranking unordered attributes
+    - "ordered(address)" - only if address hierarchy matters
+    
     ORDERING STRATEGY:
     1. Start with the most commonly searched attribute (usually primary name/title)
     2. Add secondary identifiers (alternate names, brands, creators)
     3. Include content attributes (descriptions, features, tags)
     4. Consider user search patterns specific to this data type
+    5. Default to unordered unless position specifically matters
     
     Focus on attributes that users would naturally search for when looking for these items.
     Consider the context and type of data to make intelligent decisions about search priority.
     
     Return the attributes in precise order of search importance (most important first).
+    Format each attribute with unordered() or ordered() based on whether position matters.
     If no attributes are suitable for search, return an empty array.
   `;
 
