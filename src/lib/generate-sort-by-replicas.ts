@@ -2,7 +2,7 @@ import { anthropic } from '@ai-sdk/anthropic';
 import { generateObject } from 'ai';
 import z from 'zod';
 
-const schema = z.object({
+const attributeSchema = z.object({
   sortableAttributes: z
     .array(z.string())
     .describe(
@@ -15,19 +15,31 @@ const schema = z.object({
     ),
 });
 
+const directionSchema = z.object({
+  sortableAttributes: z
+    .array(z.string())
+    .describe(
+      'Array of sortable attributes with direction modifiers (e.g., "desc(price)", "asc(price)", "desc(rating)")'
+    ),
+  reasoning: z
+    .string()
+    .describe(
+      'Brief explanation of the sorting directions chosen for each attribute'
+    ),
+});
+
 export async function generateSortByReplicas(
   records: Array<Record<string, unknown>>,
   limit: number = 10
 ) {
   const sampleRecords = records.slice(0, limit);
 
-  const prompt = `
+  // Step 1: Select sortable attributes
+  const attributePrompt = `
     Analyze these sample records and determine which attributes should be used for sorting in an Algolia search index.
 
     Sample records:
     ${JSON.stringify(sampleRecords, null, 2)}
-
-    Sorting allows users to order results by specific attributes (like price low-to-high), overriding relevance-based ranking.
 
     Rules for selecting sorting attributes:
     
@@ -69,19 +81,73 @@ export async function generateSortByReplicas(
   `;
 
   try {
-    const { object } = await generateObject({
+    // Step 1: Get sortable attributes
+    const { object: attributeResult } = await generateObject({
       model: anthropic('claude-3-haiku-20240307'),
-      maxTokens: 1000,
+      maxTokens: 500,
       temperature: 0.1,
-      schema,
-      prompt,
+      schema: attributeSchema,
+      prompt: attributePrompt,
     });
 
-    return object;
+    if (
+      !attributeResult.sortableAttributes ||
+      attributeResult.sortableAttributes.length === 0
+    ) {
+      return {
+        sortableAttributes: [],
+        reasoning:
+          attributeResult.reasoning ||
+          'No suitable attributes found for sorting',
+      };
+    }
+
+    // Step 2: Add sorting directions
+    const directionPrompt = `
+      For these selected sortable attributes: ${attributeResult.sortableAttributes.join(
+        ', '
+      )}
+      
+      Determine the most useful sorting direction(s) for each attribute. Return each attribute with its modifier.
+      
+      Guidelines for sorting directions:
+      
+      - For PRICES/COSTS: Include both desc(price) and asc(price) as both are commonly useful
+      - For DATES: Usually desc(date) for "newest first" (most common), asc(date) only if "oldest first" is also useful
+      - For RATINGS: Usually desc(rating) for "highest rated first" (most common), asc(rating) rarely useful
+      - For POPULARITY METRICS: Usually desc(views) for "most popular first" (most common)
+      - For QUANTITIES: Usually desc(stock) for "most in stock first" or asc(stock) for "low stock first"
+      
+      Common patterns:
+      - Price: ["desc(price)", "asc(price)"] (both directions useful)
+      - Date: ["desc(date)"] (newest first most common)
+      - Rating: ["desc(rating)"] (highest first most common)
+      - Views/Popularity: ["desc(views)"] (most popular first)
+      - Stock: ["desc(stock)"] or ["asc(stock)"] depending on use case
+      
+      Each attribute should be returned with its modifier: "desc(attributeName)" or "asc(attributeName)".
+      You should include both directions for the same attribute if both are commonly useful (especially for price).
+      
+      Limit to 3-6 sorting options maximum for optimal user experience (accounting for both directions of some attributes).
+    `;
+
+    const { object: directionResult } = await generateObject({
+      model: anthropic('claude-3-haiku-20240307'),
+      maxTokens: 500,
+      temperature: 0.1,
+      schema: directionSchema,
+      prompt: directionPrompt,
+    });
+
+    return {
+      sortableAttributes: directionResult.sortableAttributes,
+      reasoning:
+        `${attributeResult.reasoning} ${directionResult.reasoning}`.trim(),
+    };
   } catch (err) {
     console.error('AI sorting analysis error:', err);
 
-    // Fallback: look for common sorting attributes
+    // Fallback: look for common sorting attributes with directions
     const firstRecord = sampleRecords[0] || {};
     const fallbackSorting = Object.keys(firstRecord)
       .filter((key) => {
@@ -103,12 +169,34 @@ export async function generateSortByReplicas(
 
         return isNumeric && isSortingAttribute;
       })
-      .slice(0, 3);
+      .slice(0, 3)
+      .map((key) => {
+        const lowerKey = key.toLowerCase();
+        // Apply common sorting directions based on attribute type
+        if (lowerKey.includes('price') || lowerKey.includes('cost')) {
+          return `desc(${key})`; // Most expensive first is common default
+        } else if (
+          lowerKey.includes('date') ||
+          lowerKey.includes('timestamp')
+        ) {
+          return `desc(${key})`; // Newest first is common default
+        } else if (lowerKey.includes('rating') || lowerKey.includes('score')) {
+          return `desc(${key})`; // Highest rated first
+        } else if (
+          lowerKey.includes('views') ||
+          lowerKey.includes('likes') ||
+          lowerKey.includes('sales')
+        ) {
+          return `desc(${key})`; // Most popular first
+        } else {
+          return `desc(${key})`; // Default to descending
+        }
+      });
 
     return {
       sortableAttributes: fallbackSorting,
       reasoning:
-        'Fallback: Selected numeric attributes with sorting-related names',
+        'Fallback: Selected numeric attributes with sorting-related names and applied common sorting directions',
     };
   }
 }

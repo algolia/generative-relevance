@@ -169,24 +169,28 @@ async function createSortByReplicas(
     description: string;
   }> = [];
 
-  for (const attribute of sortableAttributes) {
-    const replicaNameAsc = `${indexName}_${attribute}_asc`;
-    const replicaNameDesc = `${indexName}_${attribute}_desc`;
+  // Parse sortable attributes that now come with modifiers like "desc(price)", "asc(rating)"
+  for (const sortAttribute of sortableAttributes) {
+    const match = sortAttribute.match(/^(desc|asc)\((.+)\)$/);
 
-    replicaNames.push(replicaNameAsc, replicaNameDesc);
+    if (!match) {
+      console.warn(`Invalid sort attribute format: ${sortAttribute}`);
+
+      continue;
+    }
+
+    const [, direction, attribute] = match;
+    const replicaName = `${indexName}_${attribute}_${direction}`;
+
+    replicaNames.push(replicaName);
 
     const labelBase = generateAttributeLabel(attribute);
+    const directionLabel = direction === 'asc' ? 'Low to High' : 'High to Low';
 
-    sortReplicas.push(
-      {
-        label: `${labelBase}: Low to High`,
-        value: replicaNameAsc,
-      },
-      {
-        label: `${labelBase}: High to Low`,
-        value: replicaNameDesc,
-      }
-    );
+    sortReplicas.push({
+      label: `${labelBase}: ${directionLabel}`,
+      value: replicaName,
+    });
   }
 
   try {
@@ -210,33 +214,19 @@ async function createSortByReplicas(
       description: 'Creating replica indices',
     });
 
-    // Configure each replica with appropriate ranking only
-    for (const attribute of sortableAttributes) {
-      const replicaNameAsc = `${indexName}_${attribute}_asc`;
-      const replicaNameDesc = `${indexName}_${attribute}_desc`;
+    // Configure each replica with appropriate ranking
+    for (const sortAttribute of sortableAttributes) {
+      const match = sortAttribute.match(/^(desc|asc)\((.+)\)$/);
+      if (!match) continue;
 
-      const ascResult = await client.setSettings({
-        indexName: replicaNameAsc,
+      const [, direction, attribute] = match;
+      const replicaName = `${indexName}_${attribute}_${direction}`;
+
+      const result = await client.setSettings({
+        indexName: replicaName,
         indexSettings: {
           ranking: [
-            `asc(${attribute})`,
-            `typo`,
-            `geo`,
-            `words`,
-            `filters`,
-            `proximity`,
-            `attribute`,
-            `exact`,
-            `custom`,
-          ],
-        },
-      });
-
-      const descResult = await client.setSettings({
-        indexName: replicaNameDesc,
-        indexSettings: {
-          ranking: [
-            `desc(${attribute})`,
+            sortAttribute, // Use the full sort attribute (e.g., "desc(price)")
             `typo`,
             `geo`,
             `words`,
@@ -250,18 +240,13 @@ async function createSortByReplicas(
       });
 
       const labelBase = generateAttributeLabel(attribute);
-      replicaTasks.push(
-        {
-          taskID: ascResult.taskID,
-          indexName: replicaNameAsc,
-          description: `Configuring ${labelBase} (asc) sort`,
-        },
-        {
-          taskID: descResult.taskID,
-          indexName: replicaNameDesc,
-          description: `Configuring ${labelBase} (desc) sort`,
-        }
-      );
+      const directionLabel = direction === 'asc' ? 'asc' : 'desc';
+
+      replicaTasks.push({
+        taskID: result.taskID,
+        indexName: replicaName,
+        description: `Configuring ${labelBase} (${directionLabel}) sort`,
+      });
     }
   } catch (err) {
     console.error('Failed to create sort replicas:', err);
