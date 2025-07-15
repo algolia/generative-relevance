@@ -340,90 +340,27 @@ function displayComparison(
 
 function findDifferences(current: string[], suggested: string[]): string[] {
   const differences: string[] = [];
-  const MODIFIERS_REGEX =
-    /^(unordered|ordered|desc|asc|searchable|filterOnly)\((.+)\)$/;
-
-  function getBaseAttribute(attr: string): string {
-    return attr.replace(MODIFIERS_REGEX, '$2');
-  }
-
-  function getModifier(attr: string): string | null {
-    const match = attr.match(MODIFIERS_REGEX);
-
-    return match ? match[1] : null;
-  }
-
-  const currentBaseMap = new Map<string, string>();
-  const suggestedBaseMap = new Map<string, string>();
-
-  current.forEach((attr) => {
-    const base = getBaseAttribute(attr);
-    currentBaseMap.set(base, attr);
-  });
-
-  suggested.forEach((attr) => {
-    const base = getBaseAttribute(attr);
-    suggestedBaseMap.set(base, attr);
-  });
-
-  const currentBases = Array.from(currentBaseMap.keys());
-  const suggestedBases = Array.from(suggestedBaseMap.keys());
-
-  const removedBases = currentBases.filter(
-    (base) => !suggestedBases.includes(base)
-  );
-
-  if (removedBases.length > 0) {
-    const removedItems = removedBases.map((base) => currentBaseMap.get(base)!);
-
+  
+  // Items in current but not in suggested
+  const removedItems = current.filter(item => !suggested.includes(item));
+  if (removedItems.length > 0) {
     differences.push(`Removed: ${removedItems.join(', ')}`);
   }
-
-  const addedBases = suggestedBases.filter(
-    (base) => !currentBases.includes(base)
-  );
-
-  if (addedBases.length > 0) {
-    const addedItems = addedBases.map((base) => suggestedBaseMap.get(base)!);
-
+  
+  // Items in suggested but not in current
+  const addedItems = suggested.filter(item => !current.includes(item));
+  if (addedItems.length > 0) {
     differences.push(`Added: ${addedItems.join(', ')}`);
   }
-
-  const modifierChanges: string[] = [];
-
-  const commonBases = currentBases.filter((base) =>
-    suggestedBases.includes(base)
-  );
-
-  commonBases.forEach((base) => {
-    const currentAttr = currentBaseMap.get(base)!;
-    const suggestedAttr = suggestedBaseMap.get(base)!;
-
-    if (currentAttr !== suggestedAttr) {
-      const currentModifier = getModifier(currentAttr) || 'none';
-      const suggestedModifier = getModifier(suggestedAttr) || 'none';
-
-      if (currentModifier !== suggestedModifier) {
-        modifierChanges.push(
-          `${base}: ${currentModifier} → ${suggestedModifier}`
-        );
-      }
-    }
-  });
-
-  if (modifierChanges.length > 0) {
-    differences.push(`Modifier changes: ${modifierChanges.join(', ')}`);
-  }
-
-  if (
-    currentBases.length === suggestedBases.length &&
-    currentBases.every((base) => suggestedBases.includes(base)) &&
-    suggestedBases.every((base) => currentBases.includes(base)) &&
-    currentBases.join(',') !== suggestedBases.join(',')
-  ) {
+  
+  // Order changes (if both have same items but different order)
+  if (current.length === suggested.length && 
+      current.every(item => suggested.includes(item)) && 
+      suggested.every(item => current.includes(item)) &&
+      current.join(',') !== suggested.join(',')) {
     differences.push('Order changed');
   }
-
+  
   return differences;
 }
 
