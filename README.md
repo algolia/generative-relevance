@@ -42,6 +42,8 @@ A command-line tool for testing AI-powered Algolia configuration generation with
 
 ### CLI Usage
 
+#### Analyze JSON Records
+
 Generate AI configuration suggestions from a JSON file containing records:
 
 ```bash
@@ -56,21 +58,58 @@ npm run cli analyze <json-file> [options]
 - `-v, --verbose` - Show detailed reasoning for each configuration
 - `-h, --help` - Display help for command
 
+#### Compare with Existing Index
+
+Compare existing Algolia index settings with AI suggestions:
+
+```bash
+npm run cli compare <appId> <apiKey> <indexName> [options]
+```
+
+**Arguments:**
+- `<appId>` - Your Algolia App ID
+- `<apiKey>` - Your Algolia Admin API Key
+- `<indexName>` - Name of the Algolia index to compare
+
+**Options:**
+- `-l, --limit <number>` - Number of records to analyze (default: 10)
+- `-v, --verbose` - Show detailed reasoning for each configuration
+- `-h, --help` - Display help for command
+
 ### CLI Examples
+
+#### Analyze Examples
 
 Basic analysis:
 ```bash
-npm run cli analyze datasets/products/clean.json
+npm run cli analyze examples/products.json
 ```
 
 Analyze with detailed reasoning:
 ```bash
-npm run cli analyze datasets/products/clean.json -- --verbose
+npm run cli analyze examples/products.json -- --verbose
 ```
 
 Limit to 5 records with verbose output:
 ```bash
-npm run cli analyze datasets/products/clean.json -- --limit 5 --verbose
+npm run cli analyze examples/movies.json -- --limit 5 --verbose
+```
+
+#### Compare Examples
+
+Compare existing index with AI suggestions:
+```bash
+npm run cli compare YOUR_APP_ID YOUR_API_KEY your_index_name
+```
+
+Compare with verbose reasoning:
+```bash
+npm run cli compare YOUR_APP_ID YOUR_API_KEY your_index_name -- --verbose
+```
+
+Compare with limited sample size:
+```bash
+npm run cli compare YOUR_APP_ID YOUR_API_KEY your_index_name -- --limit 20 --verbose
 ```
 
 ### CLI Output
@@ -83,3 +122,14 @@ The CLI generates four types of AI configuration suggestions:
 4. **🔀 Sortable Attributes** - Attributes for sorting results
 
 Each suggestion includes the recommended attributes and optional detailed reasoning (with `--verbose` flag).
+
+### CLI Features
+
+- **No Indexing Required** - Test configurations without creating Algolia indices
+- **Parallel Processing** - Generates all configurations simultaneously
+- **Detailed Reasoning** - Understand why attributes were selected
+- **Flexible Input** - Works with any JSON array of records
+- **Fast Testing** - Quickly iterate on different datasets
+- **Index Comparison** - Compare existing Algolia index settings with AI suggestions
+- **Side-by-Side Display** - Visual comparison showing current vs suggested configurations
+- **Difference Detection** - Automatically identifies added, removed, and reordered attributes

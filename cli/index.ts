@@ -3,6 +3,7 @@
 import { config } from 'dotenv';
 import { Command } from 'commander';
 import { readFileSync } from 'fs';
+import { algoliasearch } from 'algoliasearch';
 import { generateSearchableAttributes } from '../src/lib/generate-searchable-attributes';
 import { generateCustomRanking } from '../src/lib/generate-custom-ranking';
 import { generateAttributesForFaceting } from '../src/lib/generate-attributes-for-faceting';
@@ -94,6 +95,102 @@ program
     }
   );
 
+program
+  .command('compare')
+  .description('Compare existing Algolia index settings with AI suggestions')
+  .argument('<appId>', 'Algolia App ID')
+  .argument('<apiKey>', 'Algolia Admin API Key')
+  .argument('<indexName>', 'Algolia Index Name')
+  .option('-l, --limit <number>', 'Number of records to analyze', '10')
+  .option('-v, --verbose', 'Show detailed reasoning for each configuration')
+  .action(
+    async (
+      appId: string,
+      apiKey: string,
+      indexName: string,
+      options: { limit: string; verbose?: boolean }
+    ) => {
+      try {
+        validateEnvVars();
+
+        const verbose = Boolean(options.verbose);
+        const limit = parseInt(options.limit);
+
+        if (verbose) {
+          console.log('🔧 Verbose mode enabled - will show reasoning\n');
+        }
+
+        console.log(
+          `🔍 Fetching settings and records from index: ${indexName}`
+        );
+
+        const { currentSettings, records } = await fetchAlgoliaData(
+          appId,
+          apiKey,
+          indexName,
+          limit
+        );
+
+        console.log(
+          `📊 Analyzing ${Math.min(records.length, limit)} records...\n`
+        );
+
+        console.log('⚡ Generating AI configurations...');
+
+        const [
+          searchableAttributes,
+          customRanking,
+          attributesForFaceting,
+          sortableAttributes,
+        ] = await Promise.all([
+          generateSearchableAttributes(records, limit),
+          generateCustomRanking(records, limit),
+          generateAttributesForFaceting(records, limit),
+          generateSortByReplicas(records, limit),
+        ]);
+
+        console.log('\n🔄 Configuration Comparison\n');
+        console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n');
+
+        displayComparison(
+          '🔍 Searchable Attributes',
+          currentSettings.searchableAttributes || [],
+          searchableAttributes,
+          verbose
+        );
+
+        displayComparison(
+          '📊 Custom Ranking',
+          currentSettings.customRanking || [],
+          customRanking,
+          verbose
+        );
+
+        displayComparison(
+          '🏷️ Attributes for Faceting',
+          currentSettings.attributesForFaceting || [],
+          attributesForFaceting,
+          verbose
+        );
+
+        displayComparison(
+          '🔀 Sortable Attributes',
+          currentSettings.ranking?.[0] ? [currentSettings.ranking[0]] : [],
+          sortableAttributes,
+          verbose
+        );
+
+        console.log('\n✅ Comparison complete!');
+      } catch (err) {
+        console.error(
+          '❌ Error:',
+          err instanceof Error ? err.message : 'Unknown error'
+        );
+        process.exit(1);
+      }
+    }
+  );
+
 program.parse();
 
 function displaySection(
@@ -136,6 +233,150 @@ function displaySection(
   }
 
   console.log('');
+}
+
+function displayComparison(
+  title: string,
+  currentConfig: string[],
+  aiConfig: {
+    reasoning: string;
+    searchableAttributes?: string[];
+    customRanking?: string[];
+    attributesForFaceting?: string[];
+    sortableAttributes?: string[];
+  },
+  verbose: boolean
+) {
+  console.log(`${title}`);
+  console.log('━'.repeat(50));
+
+  const aiData =
+    aiConfig.searchableAttributes ||
+    aiConfig.customRanking ||
+    aiConfig.attributesForFaceting ||
+    aiConfig.sortableAttributes;
+
+  // Display side-by-side comparison
+  console.log('');
+  console.log('📍 CURRENT          │ 🤖 AI SUGGESTED');
+  console.log('─'.repeat(20) + '┼' + '─'.repeat(25));
+
+  const maxLength = Math.max(currentConfig.length, aiData?.length || 0);
+
+  for (let i = 0; i < maxLength; i++) {
+    const current = currentConfig[i] || '';
+    const suggested = aiData?.[i] || '';
+
+    // Truncate long strings to fit in columns
+    const currentTruncated =
+      current.length > 18 ? current.substring(0, 15) + '...' : current;
+    const suggestedTruncated =
+      suggested.length > 23 ? suggested.substring(0, 20) + '...' : suggested;
+
+    console.log(
+      `${(i + 1 + '. ' + currentTruncated).padEnd(20)}│ ${(
+        i +
+        1 +
+        '. ' +
+        suggestedTruncated
+      ).padEnd(25)}`
+    );
+  }
+
+  if (currentConfig.length === 0) {
+    console.log('(No current config)     │ '.padEnd(21));
+  }
+
+  if (!aiData || aiData.length === 0) {
+    console.log(''.padEnd(20) + '│ (No AI suggestions)');
+  }
+
+  // Show differences
+  console.log('');
+  const differences = findDifferences(currentConfig, aiData || []);
+  if (differences.length > 0) {
+    console.log('🔍 Key Differences:');
+    differences.forEach((diff, index) => {
+      console.log(`  ${index + 1}. ${diff}`);
+    });
+  } else {
+    console.log('✅ Configurations match!');
+  }
+
+  if (verbose && aiConfig.reasoning) {
+    console.log('\n💡 AI Reasoning:');
+    const reasoningLines = aiConfig.reasoning.split('\n');
+    reasoningLines.forEach((line: string) => {
+      console.log(`  ${line}`);
+    });
+  } else if (verbose && !aiConfig.reasoning) {
+    console.log('\n💡 No reasoning available for this section');
+  }
+
+  console.log('');
+}
+
+function findDifferences(current: string[], suggested: string[]): string[] {
+  const differences: string[] = [];
+
+  // Items in current but not in suggested
+  const removedItems = current.filter((item) => !suggested.includes(item));
+  if (removedItems.length > 0) {
+    differences.push(`Removed: ${removedItems.join(', ')}`);
+  }
+
+  // Items in suggested but not in current
+  const addedItems = suggested.filter((item) => !current.includes(item));
+  if (addedItems.length > 0) {
+    differences.push(`Added: ${addedItems.join(', ')}`);
+  }
+
+  // Order changes (if both have same items but different order)
+  if (
+    current.length === suggested.length &&
+    current.every((item) => suggested.includes(item)) &&
+    suggested.every((item) => current.includes(item)) &&
+    current.join(',') !== suggested.join(',')
+  ) {
+    differences.push('Order changed');
+  }
+
+  return differences;
+}
+
+async function fetchAlgoliaData(
+  appId: string,
+  apiKey: string,
+  indexName: string,
+  limit: number
+) {
+  try {
+    const client = algoliasearch(appId, apiKey);
+
+    console.log('  📋 Fetching index settings...');
+    const settings = await client.getSettings({ indexName });
+
+    console.log('  📄 Fetching sample records...');
+    const searchResult = await client.searchSingleIndex({
+      indexName,
+      searchParams: {
+        query: '',
+        hitsPerPage: limit,
+        attributesToRetrieve: ['*'],
+      },
+    });
+
+    return {
+      currentSettings: settings,
+      records: searchResult.hits,
+    };
+  } catch (error) {
+    throw new Error(
+      `Failed to fetch data from Algolia: ${
+        error instanceof Error ? error.message : 'Unknown error'
+      }`
+    );
+  }
 }
 
 function validateEnvVars() {
