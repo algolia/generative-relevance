@@ -256,39 +256,55 @@ function displayComparison(
     aiConfig.attributesForFaceting ||
     aiConfig.sortableAttributes;
 
+  // Calculate column widths based on longest content
+  const maxLength = Math.max(currentConfig.length, aiData?.length || 0);
+  
+  // Find the longest strings in each column
+  let maxCurrentLength = '📍 CURRENT'.length;
+  let maxSuggestedLength = '🤖 AI SUGGESTED'.length;
+  
+  for (let i = 0; i < maxLength; i++) {
+    const current = currentConfig[i] || '';
+    const suggested = aiData?.[i] || '';
+    
+    const currentWithNumber = `${i + 1}. ${current}`;
+    const suggestedWithNumber = `${i + 1}. ${suggested}`;
+    
+    maxCurrentLength = Math.max(maxCurrentLength, currentWithNumber.length);
+    maxSuggestedLength = Math.max(maxSuggestedLength, suggestedWithNumber.length);
+  }
+  
+  // Add some padding
+  maxCurrentLength += 2;
+  maxSuggestedLength += 2;
+  
+  // Ensure minimum widths
+  maxCurrentLength = Math.max(maxCurrentLength, 20);
+  maxSuggestedLength = Math.max(maxSuggestedLength, 25);
+
   // Display side-by-side comparison
   console.log('');
-  console.log('📍 CURRENT          │ 🤖 AI SUGGESTED');
-  console.log('─'.repeat(20) + '┼' + '─'.repeat(25));
-
-  const maxLength = Math.max(currentConfig.length, aiData?.length || 0);
+  console.log(`${'📍 CURRENT'.padEnd(maxCurrentLength)}│ 🤖 AI SUGGESTED`);
+  console.log('─'.repeat(maxCurrentLength) + '┼' + '─'.repeat(maxSuggestedLength));
 
   for (let i = 0; i < maxLength; i++) {
     const current = currentConfig[i] || '';
     const suggested = aiData?.[i] || '';
 
-    // Truncate long strings to fit in columns
-    const currentTruncated =
-      current.length > 18 ? current.substring(0, 15) + '...' : current;
-    const suggestedTruncated =
-      suggested.length > 23 ? suggested.substring(0, 20) + '...' : suggested;
+    const currentWithNumber = `${i + 1}. ${current}`;
+    const suggestedWithNumber = `${i + 1}. ${suggested}`;
 
     console.log(
-      `${(i + 1 + '. ' + currentTruncated).padEnd(20)}│ ${(
-        i +
-        1 +
-        '. ' +
-        suggestedTruncated
-      ).padEnd(25)}`
+      `${currentWithNumber.padEnd(maxCurrentLength)}│ ${suggestedWithNumber}`
     );
   }
 
   if (currentConfig.length === 0) {
-    console.log('(No current config)     │ '.padEnd(21));
+    console.log(`${'(No current config)'.padEnd(maxCurrentLength)}│ `);
   }
 
   if (!aiData || aiData.length === 0) {
-    console.log(''.padEnd(20) + '│ (No AI suggestions)');
+    console.log(`${''.padEnd(maxCurrentLength)}│ (No AI suggestions)`);
   }
 
   // Show differences
