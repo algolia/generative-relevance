@@ -1,6 +1,7 @@
 import { anthropic } from '@ai-sdk/anthropic';
 import { generateObject } from 'ai';
 import z from 'zod';
+
 import { detectHierarchicalFacets } from './detect-hierarchical-facets';
 
 const schema = z.object({
@@ -72,7 +73,7 @@ export async function generateAttributesForFaceting(
     Rules for selecting faceting attributes:
     
     IMPORTANT: Only suggest attributes that are truly suitable for faceting. It's better to return an empty array than to force inappropriate attributes.
-    
+        
     INCLUDE attributes that are good for filtering:
     - Category/type fields (genre, category, department, section)
     - Brand, manufacturer, designer, author, artist names
@@ -98,8 +99,8 @@ export async function generateAttributesForFaceting(
     
     Each attribute should be returned with its modifier: "attribute", "searchable(attribute)", or "filterOnly(attribute)".
     
-    Limit to 5-8 faceting attributes maximum for optimal user experience.
-    If no attributes are suitable for faceting, return an empty array. Quality over quantity.
+    Aim for 10-12 faceting attributes for optimal user experience, but prioritize quality over quantity.
+    If no attributes are suitable for faceting, return an empty array.
   `;
 
   try {
@@ -111,19 +112,30 @@ export async function generateAttributesForFaceting(
       prompt,
     });
 
+    // Validate that all suggested attributes actually exist in the records
+    const validatedAttributes = validateAttributes(
+      object.attributesForFaceting,
+      sampleRecords
+    );
+
     const attributesForFaceting = [
       ...hierarchicalFacets,
-      ...object.attributesForFaceting,
+      ...validatedAttributes,
     ];
 
-    const reasoning =
-      hierarchicalFacets.length > 0
-        ? `${
-            object.reasoning
-          } Additionally, detected hierarchical facets: ${hierarchicalFacets.join(
-            ', '
-          )}.`
-        : object.reasoning;
+    const filteredCount =
+      object.attributesForFaceting.length - validatedAttributes.length;
+    let reasoning = object.reasoning;
+
+    if (hierarchicalFacets.length > 0) {
+      reasoning += ` Additionally, detected hierarchical facets: ${hierarchicalFacets.join(
+        ', '
+      )}.`;
+    }
+
+    if (filteredCount > 0) {
+      reasoning += ` Filtered out ${filteredCount} non-existent attribute(s) from AI suggestions.`;
+    }
 
     return {
       attributesForFaceting,
@@ -232,4 +244,42 @@ export async function generateAttributesForFaceting(
           : ''),
     };
   }
+}
+
+function validateAttributes(
+  attributes: string[],
+  records: Array<Record<string, unknown>>
+): string[] {
+  if (records.length === 0) {
+    return [];
+  }
+
+  const allAttributeNames = new Set<string>();
+
+  records.forEach((record) => {
+    Object.keys(record).forEach((key) => {
+      allAttributeNames.add(key);
+    });
+  });
+
+  function getBaseAttribute(attribute: string): string {
+    const match = attribute.match(/^(?:searchable|filterOnly)\((.+)\)$/);
+
+    return match ? match[1] : attribute;
+  }
+
+  const validAttributes = attributes.filter((attribute) => {
+    const baseAttribute = getBaseAttribute(attribute);
+    const exists = allAttributeNames.has(baseAttribute);
+
+    if (!exists) {
+      console.warn(
+        `Filtered out non-existent attribute: ${attribute} (base: ${baseAttribute})`
+      );
+    }
+
+    return exists;
+  });
+
+  return validAttributes;
 }
