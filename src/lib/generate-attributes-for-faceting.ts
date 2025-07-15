@@ -39,10 +39,33 @@ export async function generateAttributesForFaceting(
   });
 
   const prompt = `
-    Analyze these sample records and determine which attributes should be configured for faceting in an Algolia search index.
+    Analyze these sample records and determine which attributes should be configured for faceting in an Algolia search index, along with their appropriate modifiers.
 
     Sample records:
     ${JSON.stringify(filteredRecords, null, 2)}
+
+    Use the following chain of thought approach to solve this step by step:
+
+    Step 1: Identify potential faceting attributes
+    - Look for categorical attributes that users would filter by
+    - Consider: categories, brands, statuses, locations, formats, materials
+    - Exclude: unique identifiers, URLs, long text, numeric values for ranking
+    
+    Step 2: Filter and prioritize attributes
+    - Remove attributes with too many unique values (unless suitable for searchable)
+    - Choose attributes that provide meaningful filtering options
+    - Ensure attributes exist consistently across records
+    - Limit to 5-8 attributes maximum
+    
+    Step 3: Determine faceting modifiers for each attribute
+    - Use "attribute" for regular facets (limited unique values, <10)
+    - Use "searchable(attribute)" for facets with many values (brands, locations with 10s+ options)
+    - Use "filterOnly(attribute)" for facets used only programmatically, not displayed to users
+    
+    Step 4: Format final result
+    - Return each attribute with its modifier: "attribute", "searchable(attribute)", or "filterOnly(attribute)"
+    - Prioritize user-facing filters over programmatic ones
+    - Quality over quantity - better to have fewer, more useful facets
 
     Facets are filterable categories that allow users to refine search results. Think of them as filters users can apply.
 
@@ -73,6 +96,9 @@ export async function generateAttributesForFaceting(
     - Use "searchable(attribute)" for facets with many values (brands with 10s of options)
     - Use "filterOnly(attribute)" for facets used only programmatically, not displayed
     
+    Each attribute should be returned with its modifier: "attribute", "searchable(attribute)", or "filterOnly(attribute)".
+    
+    Limit to 5-8 faceting attributes maximum for optimal user experience.
     If no attributes are suitable for faceting, return an empty array. Quality over quantity.
   `;
 
@@ -153,7 +179,28 @@ export async function generateAttributesForFaceting(
           value !== null
         );
       })
-      .slice(0, 3); // Reduced from 5 to 3 to be more conservative
+      .slice(0, 3) // Reduced from 5 to 3 to be more conservative
+      .map((key) => {
+        const lowerKey = key.toLowerCase();
+        // Apply faceting modifiers based on attribute type
+        if (
+          lowerKey.includes('brand') ||
+          lowerKey.includes('author') ||
+          lowerKey.includes('designer')
+        ) {
+          return `searchable(${key})`; // Brands/authors often have many options
+        } else if (
+          lowerKey.includes('category') ||
+          lowerKey.includes('genre') ||
+          lowerKey.includes('type')
+        ) {
+          return key; // Categories are usually limited options
+        } else if (lowerKey.includes('status')) {
+          return `filterOnly(${key})`; // Status often used programmatically
+        } else {
+          return key; // Default to regular facet
+        }
+      });
 
     // Merge with hierarchical facets
     const allFallbackFacets = [...hierarchicalFacets, ...fallbackFacets];
@@ -178,7 +225,11 @@ export async function generateAttributesForFaceting(
 
     return {
       attributesForFaceting: allFallbackFacets,
-      reasoning: reasoningParts.join('. '),
+      reasoning:
+        reasoningParts.join('. ') +
+        (allFallbackFacets.length > 0
+          ? ' Applied appropriate faceting modifiers based on attribute types.'
+          : ''),
     };
   }
 }
