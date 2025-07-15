@@ -258,26 +258,29 @@ function displayComparison(
 
   // Calculate column widths based on longest content
   const maxLength = Math.max(currentConfig.length, aiData?.length || 0);
-  
+
   // Find the longest strings in each column
   let maxCurrentLength = '📍 CURRENT'.length;
   let maxSuggestedLength = '🤖 AI SUGGESTED'.length;
-  
+
   for (let i = 0; i < maxLength; i++) {
     const current = currentConfig[i] || '';
     const suggested = aiData?.[i] || '';
-    
+
     const currentWithNumber = `${i + 1}. ${current}`;
     const suggestedWithNumber = `${i + 1}. ${suggested}`;
-    
+
     maxCurrentLength = Math.max(maxCurrentLength, currentWithNumber.length);
-    maxSuggestedLength = Math.max(maxSuggestedLength, suggestedWithNumber.length);
+    maxSuggestedLength = Math.max(
+      maxSuggestedLength,
+      suggestedWithNumber.length
+    );
   }
-  
+
   // Add some padding
   maxCurrentLength += 2;
   maxSuggestedLength += 2;
-  
+
   // Ensure minimum widths
   maxCurrentLength = Math.max(maxCurrentLength, 20);
   maxSuggestedLength = Math.max(maxSuggestedLength, 25);
@@ -285,7 +288,9 @@ function displayComparison(
   // Display side-by-side comparison
   console.log('');
   console.log(`${'📍 CURRENT'.padEnd(maxCurrentLength)}│ 🤖 AI SUGGESTED`);
-  console.log('─'.repeat(maxCurrentLength) + '┼' + '─'.repeat(maxSuggestedLength));
+  console.log(
+    '─'.repeat(maxCurrentLength) + '┼' + '─'.repeat(maxSuggestedLength)
+  );
 
   for (let i = 0; i < maxLength; i++) {
     const current = currentConfig[i] || '';
@@ -334,25 +339,86 @@ function displayComparison(
 
 function findDifferences(current: string[], suggested: string[]): string[] {
   const differences: string[] = [];
+  const MODIFIERS_REGEX =
+    /^(unordered|ordered|desc|asc|searchable|filterOnly)\((.+)\)$/;
 
-  // Items in current but not in suggested
-  const removedItems = current.filter((item) => !suggested.includes(item));
-  if (removedItems.length > 0) {
+  function getBaseAttribute(attr: string): string {
+    return attr.replace(MODIFIERS_REGEX, '$2');
+  }
+
+  function getModifier(attr: string): string | null {
+    const match = attr.match(MODIFIERS_REGEX);
+
+    return match ? match[1] : null;
+  }
+
+  const currentBaseMap = new Map<string, string>();
+  const suggestedBaseMap = new Map<string, string>();
+
+  current.forEach((attr) => {
+    const base = getBaseAttribute(attr);
+    currentBaseMap.set(base, attr);
+  });
+
+  suggested.forEach((attr) => {
+    const base = getBaseAttribute(attr);
+    suggestedBaseMap.set(base, attr);
+  });
+
+  const currentBases = Array.from(currentBaseMap.keys());
+  const suggestedBases = Array.from(suggestedBaseMap.keys());
+
+  const removedBases = currentBases.filter(
+    (base) => !suggestedBases.includes(base)
+  );
+
+  if (removedBases.length > 0) {
+    const removedItems = removedBases.map((base) => currentBaseMap.get(base)!);
+
     differences.push(`Removed: ${removedItems.join(', ')}`);
   }
 
-  // Items in suggested but not in current
-  const addedItems = suggested.filter((item) => !current.includes(item));
-  if (addedItems.length > 0) {
+  const addedBases = suggestedBases.filter(
+    (base) => !currentBases.includes(base)
+  );
+
+  if (addedBases.length > 0) {
+    const addedItems = addedBases.map((base) => suggestedBaseMap.get(base)!);
+
     differences.push(`Added: ${addedItems.join(', ')}`);
   }
 
-  // Order changes (if both have same items but different order)
+  const modifierChanges: string[] = [];
+
+  const commonBases = currentBases.filter((base) =>
+    suggestedBases.includes(base)
+  );
+
+  commonBases.forEach((base) => {
+    const currentAttr = currentBaseMap.get(base)!;
+    const suggestedAttr = suggestedBaseMap.get(base)!;
+
+    if (currentAttr !== suggestedAttr) {
+      const currentModifier = getModifier(currentAttr) || 'none';
+      const suggestedModifier = getModifier(suggestedAttr) || 'none';
+
+      if (currentModifier !== suggestedModifier) {
+        modifierChanges.push(
+          `${base}: ${currentModifier} → ${suggestedModifier}`
+        );
+      }
+    }
+  });
+
+  if (modifierChanges.length > 0) {
+    differences.push(`Modifier changes: ${modifierChanges.join(', ')}`);
+  }
+
   if (
-    current.length === suggested.length &&
-    current.every((item) => suggested.includes(item)) &&
-    suggested.every((item) => current.includes(item)) &&
-    current.join(',') !== suggested.join(',')
+    currentBases.length === suggestedBases.length &&
+    currentBases.every((base) => suggestedBases.includes(base)) &&
+    suggestedBases.every((base) => currentBases.includes(base)) &&
+    currentBases.join(',') !== suggestedBases.join(',')
   ) {
     differences.push('Order changed');
   }
