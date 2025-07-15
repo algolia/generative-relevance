@@ -3,7 +3,8 @@
 import { config } from 'dotenv';
 import { Command } from 'commander';
 import { readFileSync } from 'fs';
-import { algoliasearch } from 'algoliasearch';
+import { Algoliasearch, algoliasearch, SettingsResponse } from 'algoliasearch';
+
 import { generateSearchableAttributes } from '../src/lib/generate-searchable-attributes';
 import { generateCustomRanking } from '../src/lib/generate-custom-ranking';
 import { generateAttributesForFaceting } from '../src/lib/generate-attributes-for-faceting';
@@ -175,7 +176,7 @@ program
 
         displayComparison(
           '🔀 Sortable Attributes',
-          currentSettings.ranking?.[0] ? [currentSettings.ranking[0]] : [],
+          currentSettings.sortableAttributes || [],
           sortableAttributes,
           verbose
         );
@@ -448,8 +449,17 @@ async function fetchAlgoliaData(
       },
     });
 
+    console.log('  🔀 Fetching replicas for sortable attributes...');
+    const sortableAttributes = await getSortableAttributesFromReplicas(
+      client,
+      settings
+    );
+
     return {
-      currentSettings: settings,
+      currentSettings: {
+        ...settings,
+        sortableAttributes,
+      },
       records: searchResult.hits,
     };
   } catch (error) {
@@ -459,6 +469,52 @@ async function fetchAlgoliaData(
       }`
     );
   }
+}
+
+async function getSortableAttributesFromReplicas(
+  client: Algoliasearch,
+  settings: SettingsResponse
+) {
+  const sortableAttributes: string[] = [];
+
+  if (settings.replicas && settings.replicas.length > 0) {
+    console.log(
+      `    📊 Found ${settings.replicas.length} replicas, checking their rankings...`
+    );
+
+    for (const replicaName of settings.replicas) {
+      try {
+        const replicaSettings = await client.getSettings({
+          indexName: replicaName,
+        });
+
+        if (replicaSettings.ranking && replicaSettings.ranking.length > 0) {
+          const mainRanking = settings.ranking || [];
+          const replicaRanking = replicaSettings.ranking;
+
+          if (JSON.stringify(mainRanking) !== JSON.stringify(replicaRanking)) {
+            const firstRankingCriterion = replicaRanking[0];
+
+            if (
+              firstRankingCriterion &&
+              (firstRankingCriterion.startsWith('asc(') ||
+                firstRankingCriterion.startsWith('desc('))
+            ) {
+              sortableAttributes.push(firstRankingCriterion);
+            }
+          }
+        }
+      } catch (err) {
+        console.log(
+          `    ⚠️  Could not fetch settings for replica: ${replicaName}`
+        );
+      }
+    }
+  } else {
+    console.log('    📊 No replicas found');
+  }
+
+  return sortableAttributes;
 }
 
 function validateEnvVars() {
