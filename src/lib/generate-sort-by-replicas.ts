@@ -1,6 +1,7 @@
 import { anthropic } from '@ai-sdk/anthropic';
 import { generateObject } from 'ai';
 import z from 'zod';
+import { validateAttributes } from './validate-attributes';
 
 const schema = z.object({
   sortableAttributes: z
@@ -103,7 +104,24 @@ export async function generateSortByReplicas(
       prompt,
     });
 
-    return object;
+    // Validate that all suggested attributes actually exist in the records
+    const sortableAttributes = validateAttributes(
+      object.sortableAttributes,
+      sampleRecords
+    );
+
+    const filteredCount =
+      object.sortableAttributes.length - sortableAttributes.length;
+    let reasoning = object.reasoning;
+
+    if (filteredCount > 0) {
+      reasoning += ` Sortable attributes: Filtered out ${filteredCount} non-existent attribute(s) from AI suggestions.`;
+    }
+
+    return {
+      sortableAttributes,
+      reasoning,
+    };
   } catch (err) {
     console.error('AI sorting analysis error:', err);
 

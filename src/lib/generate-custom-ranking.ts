@@ -1,6 +1,7 @@
 import { anthropic } from '@ai-sdk/anthropic';
 import { generateObject } from 'ai';
 import z from 'zod';
+import { validateAttributes } from './validate-attributes';
 
 const schema = z.object({
   customRanking: z
@@ -64,7 +65,23 @@ export async function generateCustomRanking(
       prompt,
     });
 
-    return object;
+    // Validate that all suggested attributes actually exist in the records
+    const customRanking = validateAttributes(
+      object.customRanking,
+      sampleRecords
+    );
+
+    const filteredCount = object.customRanking.length - customRanking.length;
+    let reasoning = object.reasoning;
+
+    if (filteredCount > 0) {
+      reasoning += ` Custom ranking: Filtered out ${filteredCount} non-existent attribute(s) from AI suggestions.`;
+    }
+
+    return {
+      customRanking,
+      reasoning,
+    };
   } catch (err) {
     console.error('AI custom ranking analysis error:', err);
 

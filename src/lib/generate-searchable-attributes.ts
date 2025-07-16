@@ -1,6 +1,7 @@
 import { anthropic } from '@ai-sdk/anthropic';
 import { generateObject } from 'ai';
 import z from 'zod';
+import { validateAttributes } from './validate-attributes';
 
 const schema = z.object({
   searchableAttributes: z
@@ -109,7 +110,24 @@ export async function generateSearchableAttributes(
       prompt,
     });
 
-    return object;
+    // Validate that all suggested attributes actually exist in the records
+    const searchableAttributes = validateAttributes(
+      object.searchableAttributes,
+      sampleRecords
+    );
+
+    const filteredCount =
+      object.searchableAttributes.length - searchableAttributes.length;
+    let reasoning = object.reasoning;
+
+    if (filteredCount > 0) {
+      reasoning += ` Searchable attributes: Filtered out ${filteredCount} non-existent attribute(s) from AI suggestions.`;
+    }
+
+    return {
+      searchableAttributes,
+      reasoning,
+    };
   } catch (err) {
     console.error('AI analysis error:', err);
 
