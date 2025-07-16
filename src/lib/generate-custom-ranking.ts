@@ -26,11 +26,18 @@ export async function generateCustomRanking(
 
     Sample records:
     ${JSON.stringify(sampleRecords, null, 2)}
+    
+    Step 1: Identify potential custom ranking attributes from the sample records
+    Step 2: Order custom ranking attributes by importance
+    Step 3: Determine appropriate sort order
+    Step 4: Format final result with sort order
+    
+    CRITICAL RULES:
+    - Only suggest attributes that actually exist in the provided sample records, don't invent ones
+    - Only suggest attributes truly suitable for custom ranking. If no attributes clearly indicate quality or relevance, return an empty array.
 
     Rules for selecting custom ranking attributes:
-    
-    IMPORTANT: Only suggest attributes that are truly suitable for ranking. If no attributes clearly indicate quality or relevance, return an empty array.
-    
+        
     INCLUDE numeric/boolean attributes that indicate quality or relevance:
     - Sales counts, purchase counts, order counts
     - View counts, click counts, impression counts
@@ -49,12 +56,17 @@ export async function generateCustomRanking(
     - Prices (usually used for sorting, not ranking)
     - Coordinates and technical data
     
-    For each attribute, determine the sort order:
+    Rules for ordering custom ranking attributes by importance:
+    When sorting records, Algolia uses a tie-breaking algorithm using custom ranking criterion in the order you gave. If the first one breaks the tie, the next one is never considered.
+    When ordering custom ranking attributes, consider:
+    - Business importance (attributes that are a stronger signal of interest for users go first)
+    - Cardinality of values (attributes which values are too varied shouldn't go first because they would often break the tie on insignificant gaps)
+    
+    Rules for determining the sort order:
     - Use "desc(attribute)" for attributes where higher values are better (sales, ratings, popularity)
     - Use "asc(attribute)" for attributes where lower values are better (rank position, priority level)
-    
-    Return attributes in order of ranking importance (most important first).
-    If no attributes are suitable for ranking, return an empty array.
+        
+    Explain your answer step-by-step.
   `;
 
   try {
