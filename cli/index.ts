@@ -29,6 +29,8 @@ program
   .option('-v, --verbose', 'Show detailed reasoning for each configuration')
   .action(
     async (file: string, options: { limit: string; verbose?: boolean }) => {
+      const startTime = Date.now();
+
       try {
         validateEnvVars();
 
@@ -84,7 +86,9 @@ program
         );
         displaySection('🔀 Sortable Attributes', sortableAttributes, verbose);
 
-        console.log('\n✅ Analysis complete!');
+        const endTime = Date.now();
+        const duration = (endTime - startTime) / 1000;
+        console.log(`\n✅ Analysis complete! (took ${duration.toFixed(2)}s)`);
       } catch (err) {
         console.error(
           '❌ Error:',
@@ -111,6 +115,8 @@ program
       indexName: string,
       options: { limit: string; verbose?: boolean }
     ) => {
+      const startTime = Date.now();
+
       try {
         validateEnvVars();
 
@@ -181,7 +187,10 @@ program
           verbose
         );
 
-        console.log('\n✅ Comparison complete!');
+        const endTime = Date.now();
+        const duration = (endTime - startTime) / 1000;
+
+        console.log(`\n✅ Comparison complete! (took ${duration.toFixed(2)}s)`);
       } catch (err) {
         console.error(
           '❌ Error:',
@@ -340,27 +349,29 @@ function displayComparison(
 
 function findDifferences(current: string[], suggested: string[]): string[] {
   const differences: string[] = [];
-  
+
   // Items in current but not in suggested
-  const removedItems = current.filter(item => !suggested.includes(item));
+  const removedItems = current.filter((item) => !suggested.includes(item));
   if (removedItems.length > 0) {
     differences.push(`Removed: ${removedItems.join(', ')}`);
   }
-  
+
   // Items in suggested but not in current
-  const addedItems = suggested.filter(item => !current.includes(item));
+  const addedItems = suggested.filter((item) => !current.includes(item));
   if (addedItems.length > 0) {
     differences.push(`Added: ${addedItems.join(', ')}`);
   }
-  
+
   // Order changes (if both have same items but different order)
-  if (current.length === suggested.length && 
-      current.every(item => suggested.includes(item)) && 
-      suggested.every(item => current.includes(item)) &&
-      current.join(',') !== suggested.join(',')) {
+  if (
+    current.length === suggested.length &&
+    current.every((item) => suggested.includes(item)) &&
+    suggested.every((item) => current.includes(item)) &&
+    current.join(',') !== suggested.join(',')
+  ) {
     differences.push('Order changed');
   }
-  
+
   return differences;
 }
 
