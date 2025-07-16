@@ -69,14 +69,15 @@ export async function generateCustomRanking(
     // Validate that all suggested attributes actually exist in the records
     const customRanking = validateAttributes(
       object.customRanking,
-      sampleRecords
+      sampleRecords,
+      'Custom ranking'
     );
 
     const filteredCount = object.customRanking.length - customRanking.length;
     let reasoning = object.reasoning;
 
     if (filteredCount > 0) {
-      reasoning += ` Custom ranking: Filtered out ${filteredCount} non-existent attribute(s) from AI suggestions.`;
+      reasoning += ` Filtered out ${filteredCount} non-existent attribute(s) from AI suggestions.`;
     }
 
     return {

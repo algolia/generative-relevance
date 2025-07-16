@@ -95,7 +95,8 @@ export async function generateAttributesForFaceting(
     // Validate that all suggested attributes actually exist in the records
     const validatedAttributes = validateAttributes(
       object.attributesForFaceting,
-      sampleRecords
+      sampleRecords,
+      'Facets'
     );
 
     const attributesForFaceting = [
@@ -114,7 +115,7 @@ export async function generateAttributesForFaceting(
     }
 
     if (filteredCount > 0) {
-      reasoning += ` Facets: Filtered out ${filteredCount} non-existent attribute(s) from AI suggestions.`;
+      reasoning += ` Filtered out ${filteredCount} non-existent attribute(s) from AI suggestions.`;
     }
 
     return {

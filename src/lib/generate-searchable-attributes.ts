@@ -114,7 +114,8 @@ export async function generateSearchableAttributes(
     // Validate that all suggested attributes actually exist in the records
     const searchableAttributes = validateAttributes(
       object.searchableAttributes,
-      sampleRecords
+      sampleRecords,
+      'Searchable attributes'
     );
 
     const filteredCount =
@@ -122,7 +123,7 @@ export async function generateSearchableAttributes(
     let reasoning = object.reasoning;
 
     if (filteredCount > 0) {
-      reasoning += ` Searchable attributes: Filtered out ${filteredCount} non-existent attribute(s) from AI suggestions.`;
+      reasoning += ` Filtered out ${filteredCount} non-existent attribute(s) from AI suggestions.`;
     }
 
     return {
