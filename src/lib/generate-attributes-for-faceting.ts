@@ -44,68 +44,47 @@ export async function generateAttributesForFaceting(
 
     Sample records:
     ${JSON.stringify(filteredRecords, null, 2)}
-
-    Use the following chain of thought approach to solve this step by step:
-
-    Step 1: Identify potential faceting attributes
-    - Look for categorical attributes that users would filter by
-    - Consider: categories, brands, statuses, locations, formats, materials
-    - Exclude: unique identifiers, URLs, long text, numeric values for ranking
     
-    Step 2: Filter and prioritize attributes
-    - Remove attributes with too many unique values (unless suitable for searchable)
-    - Choose attributes that provide meaningful filtering options
-    - Ensure attributes exist consistently across records
-    - Limit to 5-8 attributes maximum
-    
-    Step 3: Determine faceting modifiers for each attribute
-    - Use "attribute" for regular facets (limited unique values, <10)
-    - Use "searchable(attribute)" for facets with many values (brands, locations with 10s+ options)
-    - Use "filterOnly(attribute)" for facets used only programmatically, not displayed to users
-    
-    Step 4: Format final result
-    - Return each attribute with its modifier: "attribute", "searchable(attribute)", or "filterOnly(attribute)"
-    - Prioritize user-facing filters over programmatic ones
-    - Quality over quantity - better to have fewer, more useful facets
+    Step 1: Identify potential faceting attributes from the sample records
+    Step 2: Filter and prioritize suitable attributes for filtering
+    Step 3: Determine appropriate modifiers based on attribute type
+    Step 4: Format final result with modifiers
 
-    Facets are filterable categories that allow users to refine search results. Think of them as filters users can apply.
+    CRITICAL RULES:
+    - Only suggest attributes that actually exist in the provided sample records, don't invent ones
+    - Only suggest attributes truly suitable for faceting
+    - Better to return fewer, high-quality facets than padding with poor choices
 
-    Rules for selecting faceting attributes:
-    
-    IMPORTANT: Only suggest attributes that are truly suitable for faceting. It's better to return an empty array than to force inappropriate attributes.
-        
-    INCLUDE attributes that are good for filtering:
-    - Category/type fields (genre, category, department, section)
-    - Brand, manufacturer, designer, author, artist names
-    - Color, size, material, style attributes
-    - Status fields (available, featured, new, bestseller)
-    - Location/geographic attributes (city, country, region)
-    - Format/type attributes (format, edition, version)
-    - Boolean flags that users might filter by
-    - Enumerated values with limited options
-        
-    EXCLUDE attributes that are not good for faceting:
+    INCLUDE attributes good for filtering:
+    - Categories, genres, departments, types
+    - Brands, manufacturers, authors, designers
+    - Colors, sizes, materials, styles
+    - Status fields (available, featured, new)
+    - Locations (city, country, region)
+    - Boolean flags users might filter by
+
+    EXCLUDE attributes not good for faceting:
     - Unique identifiers (IDs, SKUs, slugs)
-    - URLs and links
-    - Long text descriptions
-    - Numeric values used for ranking (price, rating, sales)
-    - Dates and timestamps (unless they represent categories like year)
-    - Attributes with too many unique values (unless searchable)
+    - URLs, links, long text descriptions
+    - Numeric ranking values (price, rating, sales)
+    - Dates/timestamps (unless categorical like year)
+
+    MODIFIER RULES:
+    - "attribute" for facets that typically don't have many values and where users can see all options at once, or when users wouldn't typically type to find them (numbers, codes)
+      Examples: "color", "size", "available", "featured"
+    - "searchable(attribute)" for facets that typically have many values needing search functionality (users type to find options)
+      Examples: "searchable(brand)", "searchable(author)", "searchable(category)", "searchable(city)", "searchable(tags)", "searchable(genre)"
+    - "filterOnly(attribute)" for facets used only programmatically, not displayed in UI
+      Examples: "filterOnly(internal_status)", "filterOnly(sync_status)"
+
+    Aim for 5-8 high-quality faceting attributes. You can suggest up to 10-12 knowing some may be filtered out during validation.
     
-    For each faceting attribute, determine the configuration:
-    - Use "attribute" for regular facets (limited unique values, <10)
-    - Use "searchable(attribute)" for facets with many values (brands with 10s of options)
-    - Use "filterOnly(attribute)" for facets used only programmatically, not displayed
-    
-    Each attribute should be returned with its modifier: "attribute", "searchable(attribute)", or "filterOnly(attribute)".
-    
-    Aim for 10-12 faceting attributes for optimal user experience, but prioritize quality over quantity.
-    If no attributes are suitable for faceting, return an empty array.
+    Explain your answer step-by-step.
   `;
 
   try {
     const { object } = await generateObject({
-      model: anthropic('claude-3-haiku-20240307'),
+      model: anthropic('claude-3-5-haiku-latest'),
       maxTokens: 1000,
       temperature: 0.1,
       schema,
