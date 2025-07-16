@@ -21,19 +21,20 @@ export function validateAttributes(
     });
   });
 
-  const validAttributes = attributes
-    .flatMap((attribute) => getBaseAttribute(attribute).split(','))
-    .filter((attribute) => {
-      const exists = allAttributeNames.has(attribute);
+  const validAttributes = attributes.filter((attribute) => {
+    const baseAttribute = getBaseAttribute(attribute);
+    // Necessary of searchable attributes where attributes can be comma-separated
+    const splitAttributes = baseAttribute.split(',');
+    const exists = splitAttributes.every((x) => allAttributeNames.has(x));
 
-      if (!exists) {
-        console.warn(
-          `${setting}: Filtered out non-existent attribute: ${attribute}`
-        );
-      }
+    if (!exists) {
+      console.warn(
+        `${setting}: Filtered out non-existent attribute: ${attribute} (base: ${baseAttribute})`
+      );
+    }
 
-      return exists;
-    });
+    return exists;
+  });
 
   return validAttributes;
 }
