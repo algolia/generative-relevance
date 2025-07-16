@@ -57,10 +57,13 @@ export async function generateCustomRanking(
     - Coordinates and technical data
     
     Rules for ordering custom ranking attributes by importance:
-    When sorting records, Algolia uses a tie-breaking algorithm using custom ranking criterion in the order you gave. If the first one breaks the tie, the next one is never considered.
-    When ordering custom ranking attributes, consider:
-    - Business importance (attributes that are a stronger signal of interest for users go first)
-    - Cardinality of values (attributes which values are too varied shouldn't go first because they would often break the tie on insignificant gaps)
+    Algolia uses tie-breaking: if the first attribute breaks ties, later ones are ignored.
+    
+    ORDER BY SIGNAL QUALITY:
+    1. Processed metrics BEFORE raw counts (derived scores before raw tallies)
+    2. Business-critical metrics first (revenue, quality, engagement)
+    3. Avoid high-cardinality attributes early (raw counts create ranking noise)
+    4. Prefer normalized scores over raw measurements
     
     Rules for determining the sort order:
     - Use "desc(attribute)" for attributes where higher values are better (sales, ratings, popularity)
