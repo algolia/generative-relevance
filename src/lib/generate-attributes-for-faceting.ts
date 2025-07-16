@@ -1,9 +1,9 @@
-import { anthropic } from '@ai-sdk/anthropic';
 import { generateObject } from 'ai';
 import z from 'zod';
 
 import { detectHierarchicalFacets } from './detect-hierarchical-facets';
 import { validateAttributes } from './validate-attributes';
+import { model } from './model';
 
 const schema = z.object({
   attributesForFaceting: z
@@ -85,7 +85,7 @@ export async function generateAttributesForFaceting(
 
   try {
     const { object } = await generateObject({
-      model: anthropic('claude-3-5-haiku-latest'),
+      model,
       maxTokens: 1000,
       temperature: 0.1,
       schema,
