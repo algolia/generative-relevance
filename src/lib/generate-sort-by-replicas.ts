@@ -39,6 +39,7 @@ export async function generateSortByReplicas(
     Step 2: Filter and prioritize attributes
     - Remove duplicates and similar attributes (e.g., if both "price" and "cost" exist, choose "price")
     - Choose the most user-friendly attribute from each category
+    - Choose processed, normalized ratings over raw tallies
     - Ensure attributes exist consistently across records
     - Limit to 3-4 base attributes maximum
     
@@ -94,6 +95,8 @@ export async function generateSortByReplicas(
     
     Limit to 3-6 sorting options maximum for optimal user experience (accounting for both directions of some attributes).
     If no attributes are suitable for sorting, return an empty array.
+    
+    Explain your answer step-by-step.
   `;
 
   try {
