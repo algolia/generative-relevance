@@ -68,10 +68,10 @@ export async function generateAttributesForFaceting(
     - Unique identifiers (IDs, SKUs, slugs)
     - URLs, links, long text descriptions
     - Numeric ranking values (price, rating, sales)
-    - Dates/timestamps (unless categorical like year)
+    - Dates, timestamps (unless it's categorical, like a year)
 
     MODIFIER RULES:
-    - "attribute" for facets that typically don't have many values and where users can see all options at once, or when users wouldn't typically type to find them (numbers, codes)
+    - no modifier for facets that typically don't have many values and where users can see all options at once, or when users wouldn't typically type to find them (numbers, codes)
       Examples: "color", "size", "available", "featured"
     - "searchable(attribute)" for facets that typically have many values needing search functionality (users type to find options)
       Examples: "searchable(brand)", "searchable(author)", "searchable(category)", "searchable(city)", "searchable(tags)", "searchable(genre)"
