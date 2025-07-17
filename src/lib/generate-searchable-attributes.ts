@@ -24,82 +24,52 @@ export async function generateSearchableAttributes(
 
     Sample records:
     ${JSON.stringify(sampleRecords, null, 2)}
+    
+    Step 1: Identify potential searchable attributes from the sample records
+    Step 2: Order attributes by search importance and user intent
+    Step 3: Determine modifier configuration (ordered vs unordered)
+    Step 4: Format final result with appropriate modifiers
+    
+    CRITICAL RULES:
+    - Only suggest attributes that actually exist in the provided sample records, don't invent ones
+    - Only suggest attributes truly suitable for search. If no attributes are clearly searchable, return an empty array.
 
     Rules for selecting searchable attributes:
-    
-    IMPORTANT: Only suggest attributes that are truly suitable for search. If no attributes are clearly searchable, return an empty array.
-    
-    INCLUDE attributes that are:
-    - Descriptive text attributes (name, title, description, summary, bio, content)
-    - Brand, manufacturer, or company names
-    - Category or type information
-    - Lists of features, actors, ingredients, or other descriptive elements
-    - Keywords and tags
-    - Filter attributes that users might search for (color, size, material, genre)
-    - Author, creator, or contributor names
-    - Location or place names
+        
+    INCLUDE text attributes that users search for:
+    - Names, titles, descriptions, summaries
+    - Brands, manufacturers, creators, authors
+    - Categories, types, genres
+    - Features, ingredients, cast, tags
+    - Locations, addresses
+    - Any text users might query
     
     EXCLUDE attributes that are:
-    - URLs (image URLs, product URLs, links)
-    - IDs (except objectID which is already handled)
-    - Numeric values meant for ranking/sorting (price, rating, popularity_score)
-    - Dates and timestamps
-    - Boolean flags
-    - Display-only attributes (thumbnails, status codes)
-    - Internal metadata
+    - URLs, IDs, dates, timestamps, booleans
+    - Numeric values for ranking/sorting
+    - Display-only or internal metadata
     
-    CRITICAL - ATTRIBUTE ORDERING FOR SEARCH RELEVANCE:
-    Order matters significantly in searchable attributes. Attributes listed first have higher search relevance.
+    Rules for ordering attributes by search importance:
+    Order matters - first attributes have higher search relevance.
+    1. Primary identifiers (name, title) rank highest
+    2. Secondary identifiers (brand, creator) come next
+    3. Content attributes (description, features) follow
+    4. Consider user search patterns for this data type
     
-    Compare each attribute pair and determine which should rank higher based on user search intent:
-    - For movies: "cast" often ranks higher than "director" (users search for actors more than directors)
-    - For products: "name" or "title" usually ranks highest, followed by "brand", then "description"
-    - For articles: "title" ranks higher than "author" which ranks higher than "content"
-    - For people: "name" ranks higher than "bio" or "description"
-    
-    EQUAL RANKING ATTRIBUTES:
+    Rules for equal ranking attributes:
     To make matches in multiple attributes rank equally, combine them in comma-separated strings:
     - "title,alternate_title" - treats both title fields equally
     - "name,display_name" - treats both name fields equally
     - "brand,manufacturer" - treats both brand fields equally
     
-    ORDERED VS UNORDERED ATTRIBUTES:
-    Configure each attribute as ordered or unordered based on whether word position matters:
+    Rules for modifier configuration:
+    - Use "unordered(attribute)" for most cases (position doesn't matter)
+    - Use "ordered(attribute)" only when early words are more important
+    - For array attributes: ordered may make sense when early entries are more important (cast of actors) but not for equal importance (tags)
+    - Default to unordered unless position specifically matters
+    - Note: ordered modifier cannot be used with comma-separated attributes
     
-    UNORDERED (recommended for most cases):
-    - Position of match within attribute doesn't affect ranking
-    - Use when any word match is equally valuable regardless of position
-    - Examples: "unordered(title)", "unordered(description)", "unordered(tags)"
-    - Best for: names, descriptions, feature lists, tags, categories
-    
-    ORDERED (use sparingly - only when position truly matters):
-    - Matches at beginning of attribute rank higher than matches at end
-    - Use when early words are more important than later words
-    - Examples: "ordered(title)" for hierarchical titles, "ordered(address)" for addresses
-    - Best for: hierarchical data, addresses, structured content where order indicates importance
-    
-    GENERAL RULE: Use unordered unless you have a specific reason to prioritize early matches.
-    Most attributes should be unordered since word position typically doesn't matter for search relevance.
-    
-    ATTRIBUTE FORMAT EXAMPLES:
-    - "unordered(title)" - standard title search
-    - "unordered(description)" - content description
-    - "unordered(cast,actors)" - equal ranking unordered attributes
-    - "ordered(address)" - only if address hierarchy matters
-    
-    ORDERING STRATEGY:
-    1. Start with the most commonly searched attribute (usually primary name/title)
-    2. Add secondary identifiers (alternate names, brands, creators)
-    3. Include content attributes (descriptions, features, tags)
-    4. Consider user search patterns specific to this data type
-    5. Default to unordered unless position specifically matters
-    
-    Focus on attributes that users would naturally search for when looking for these items.
-    Consider the context and type of data to make intelligent decisions about search priority.
-    
-    Return the attributes in precise order of search importance (most important first).
-    Format each attribute with unordered() or ordered() based on whether position matters.
-    If no attributes are suitable for search, return an empty array.
+    Explain your answer step-by-step.
   `;
 
   try {
