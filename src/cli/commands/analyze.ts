@@ -20,12 +20,12 @@ export function createAnalyzeCommand(): Command {
     .option('--ranking', 'Generate custom ranking only')
     .option('--faceting', 'Generate attributes for faceting only')
     .option('--sortable', 'Generate sortable attributes only')
-    .option('-m, --model <model>', 'AI model to use (claude-3-5-haiku-latest, claude-3-5-sonnet-latest, claude-3-opus-latest)', 'claude-3-5-haiku-latest')
+    .option('-m, --model <model>', 'AI model to use (claude-3-5-haiku-latest, claude-3-5-sonnet-latest, claude-3-opus-latest, o3-mini)', 'claude-3-5-haiku-latest')
     .action(async (file: string, options: AnalyzeOptions) => {
       const startTime = Date.now();
 
       try {
-        validateEnvVars();
+        validateEnvVars(options.model);
 
         console.log('🔍 Loading records from:', file);
 

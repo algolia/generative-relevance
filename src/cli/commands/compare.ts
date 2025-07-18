@@ -22,7 +22,7 @@ export function createCompareCommand(): Command {
     .option('--ranking', 'Compare custom ranking only')
     .option('--faceting', 'Compare attributes for faceting only')
     .option('--sortable', 'Compare sortable attributes only')
-    .option('-m, --model <model>', 'AI model to use (claude-3-5-haiku-latest, claude-3-5-sonnet-latest, claude-3-opus-latest)', 'claude-3-5-haiku-latest')
+    .option('-m, --model <model>', 'AI model to use (claude-3-5-haiku-latest, claude-3-5-sonnet-latest, claude-3-opus-latest, o3-mini)', 'claude-3-5-haiku-latest')
     .action(async (
       appId: string,
       apiKey: string,
@@ -32,7 +32,7 @@ export function createCompareCommand(): Command {
       const startTime = Date.now();
 
       try {
-        validateEnvVars();
+        validateEnvVars(options.model);
 
         const verbose = Boolean(options.verbose);
         const limit = parseInt(options.limit);

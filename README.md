@@ -14,7 +14,8 @@ A CLI tool for testing AI-powered Algolia configuration generation by analyzing 
 ## Prerequisites
 
 - Node.js 22+
-- Anthropic account with API Key
+- Anthropic account with API Key (for Claude models)
+- OpenAI account with API Key (for OpenAI models like o3-mini)
 
 ## Installation
 
@@ -24,10 +25,22 @@ npm install
 
 ## Environment Variables
 
-Create a `.env` file with your Anthropic API key:
+Create a `.env` file with the appropriate API keys:
 
+For Claude models (default):
 ```bash
-ANTHROPIC_API_KEY=your_anthropic_api_key
+ANTHROPIC_API_KEY=your_anthropic_api_key_here
+```
+
+For OpenAI models (o3-mini):
+```bash
+OPENAI_API_KEY=your_openai_api_key_here
+```
+
+For both providers:
+```bash
+ANTHROPIC_API_KEY=your_anthropic_api_key_here
+OPENAI_API_KEY=your_openai_api_key_here
 ```
 
 ## Usage
@@ -50,7 +63,7 @@ npm start -- analyze <json-file> [options]
 - `--ranking` - Generate custom ranking only
 - `--faceting` - Generate attributes for faceting only
 - `--sortable` - Generate sortable attributes only
-- `-m, --model <model>` - AI model to use (claude-3-5-haiku-latest, claude-3-5-sonnet-latest, claude-3-opus-latest)
+- `-m, --model <model>` - AI model to use (claude-3-5-haiku-latest, claude-3-5-sonnet-latest, claude-3-opus-latest, o3-mini)
 - `-h, --help` - Display help for command
 
 ### Compare with Existing Index
@@ -73,7 +86,7 @@ npm start -- compare <appId> <apiKey> <indexName> [options]
 - `--ranking` - Compare custom ranking only
 - `--faceting` - Compare attributes for faceting only
 - `--sortable` - Compare sortable attributes only
-- `-m, --model <model>` - AI model to use (claude-3-5-haiku-latest, claude-3-5-sonnet-latest, claude-3-opus-latest)
+- `-m, --model <model>` - AI model to use (claude-3-5-haiku-latest, claude-3-5-sonnet-latest, claude-3-opus-latest, o3-mini)
 - `-h, --help` - Display help for command
 
 ## Examples
@@ -120,6 +133,16 @@ Use Claude 3 Opus model with verbose output:
 npm start -- analyze datasets/products/clean.json --model claude-3-opus-latest --verbose
 ```
 
+Use OpenAI o3-mini model:
+```bash
+npm start -- analyze datasets/products/clean.json --model o3-mini
+```
+
+Use o3-mini with specific configuration types:
+```bash
+npm start -- analyze datasets/products/clean.json --model o3-mini --searchable --ranking --verbose
+```
+
 ### Compare Examples
 
 Compare existing index with AI suggestions:
@@ -152,6 +175,11 @@ Use Claude 3.5 Sonnet model for comparison:
 npm start -- compare YOUR_APP_ID YOUR_API_KEY your_index_name --model claude-3-5-sonnet-latest
 ```
 
+Use OpenAI o3-mini for comparison:
+```bash
+npm start -- compare YOUR_APP_ID YOUR_API_KEY your_index_name --model o3-mini --verbose
+```
+
 ## Output
 
 The CLI generates four types of AI configuration suggestions:
@@ -165,16 +193,21 @@ Each suggestion includes the recommended attributes and optional detailed reason
 
 ## Model Selection
 
-The CLI supports multiple Claude models with different capabilities:
+The CLI supports multiple AI models with different capabilities:
 
+### Claude Models (Anthropic)
 - **`claude-3-5-haiku-latest`** (default): Fastest and most cost-effective, good for quick analysis
 - **`claude-3-5-sonnet-latest`**: Balanced performance and quality, recommended for most use cases
 - **`claude-3-opus-latest`**: Highest quality analysis, best for complex datasets or critical applications
+
+### OpenAI Models
+- **`o3-mini`**: OpenAI's latest reasoning model, optimized for fast performance and cost-effectiveness
 
 Choose based on your needs:
 - Use **Haiku** for rapid prototyping and development
 - Use **Sonnet** for production analysis and detailed insights
 - Use **Opus** for complex datasets requiring nuanced understanding
+- Use **o3-mini** for OpenAI's reasoning capabilities at a lower cost
 
 ## Commands
 
