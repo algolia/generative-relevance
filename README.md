@@ -8,6 +8,7 @@ A CLI tool for testing AI-powered Algolia configuration generation by analyzing 
 - **Configuration Comparison**: Compare existing and AI-suggested configurations side-by-side
 - **No Indexing Required**: Test configurations without creating Algolia indices
 - **Parallel Processing**: Generates all configurations simultaneously
+- **Selective Generation**: Generates only the configuration you want
 - **Detailed Reasoning**: Understand why attributes were selected
 
 ## Prerequisites
@@ -45,6 +46,10 @@ npm start -- analyze <json-file> [options]
 **Options:**
 - `-l, --limit <number>` - Number of records to analyze (default: 10)
 - `-v, --verbose` - Show detailed reasoning for each configuration
+- `--searchable` - Generate searchable attributes only
+- `--ranking` - Generate custom ranking only
+- `--faceting` - Generate attributes for faceting only
+- `--sortable` - Generate sortable attributes only
 - `-h, --help` - Display help for command
 
 ### Compare with Existing Index
@@ -63,6 +68,10 @@ npm start -- compare <appId> <apiKey> <indexName> [options]
 **Options:**
 - `-l, --limit <number>` - Number of records to analyze (default: 10)
 - `-v, --verbose` - Show detailed reasoning for each configuration
+- `--searchable` - Compare searchable attributes only
+- `--ranking` - Compare custom ranking only
+- `--faceting` - Compare attributes for faceting only
+- `--sortable` - Compare sortable attributes only
 - `-h, --help` - Display help for command
 
 ## Examples
@@ -84,6 +93,21 @@ Limit to 5 records with verbose output:
 npm start -- analyze datasets/products/clean.json --limit 5 --verbose
 ```
 
+Generate only searchable attributes:
+```bash
+npm start -- analyze datasets/products/clean.json --searchable
+```
+
+Generate only custom ranking:
+```bash
+npm start -- analyze datasets/products/clean.json --ranking --verbose
+```
+
+Generate faceting and sortable attributes:
+```bash
+npm start -- analyze datasets/products/clean.json --faceting --sortable
+```
+
 ### Compare Examples
 
 Compare existing index with AI suggestions:
@@ -99,6 +123,16 @@ npm start -- compare YOUR_APP_ID YOUR_API_KEY your_index_name --verbose
 Compare with limited sample size:
 ```bash
 npm start -- compare YOUR_APP_ID YOUR_API_KEY your_index_name --limit 20 --verbose
+```
+
+Compare only searchable attributes:
+```bash
+npm start -- compare YOUR_APP_ID YOUR_API_KEY your_index_name --searchable
+```
+
+Compare only custom ranking:
+```bash
+npm start -- compare YOUR_APP_ID YOUR_API_KEY your_index_name --ranking --verbose
 ```
 
 ## Output

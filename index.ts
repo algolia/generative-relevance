@@ -27,8 +27,22 @@ program
   .argument('<file>', 'Path to JSON file containing records')
   .option('-l, --limit <number>', 'Number of records to analyze', '10')
   .option('-v, --verbose', 'Show detailed reasoning for each configuration')
+  .option('--searchable', 'Generate searchable attributes only')
+  .option('--ranking', 'Generate custom ranking only')
+  .option('--faceting', 'Generate attributes for faceting only')
+  .option('--sortable', 'Generate sortable attributes only')
   .action(
-    async (file: string, options: { limit: string; verbose?: boolean }) => {
+    async (
+      file: string,
+      options: {
+        limit: string;
+        verbose?: boolean;
+        searchable?: boolean;
+        ranking?: boolean;
+        faceting?: boolean;
+        sortable?: boolean;
+      }
+    ) => {
       const startTime = Date.now();
 
       try {
@@ -52,39 +66,67 @@ program
 
         const verbose = Boolean(options.verbose);
 
+        // Determine which configurations to generate
+        const generateAll =
+          !options.searchable &&
+          !options.ranking &&
+          !options.faceting &&
+          !options.sortable;
+        const shouldGenerateSearchable = generateAll || options.searchable;
+        const shouldGenerateRanking = generateAll || options.ranking;
+        const shouldGenerateFaceting = generateAll || options.faceting;
+        const shouldGenerateSortable = generateAll || options.sortable;
+
         if (verbose) {
           console.log('🔧 Verbose mode enabled - will show reasoning\n');
         }
 
         console.log('⚡ Generating AI configurations...');
 
+        // Generate only selected configurations
         const [
           searchableAttributes,
           customRanking,
           attributesForFaceting,
           sortableAttributes,
         ] = await Promise.all([
-          generateSearchableAttributes(records, limit),
-          generateCustomRanking(records, limit),
-          generateAttributesForFaceting(records, limit),
-          generateSortByReplicas(records, limit),
+          shouldGenerateSearchable
+            ? generateSearchableAttributes(records, limit)
+            : Promise.resolve(null),
+          shouldGenerateRanking
+            ? generateCustomRanking(records, limit)
+            : Promise.resolve(null),
+          shouldGenerateFaceting
+            ? generateAttributesForFaceting(records, limit)
+            : Promise.resolve(null),
+          shouldGenerateSortable
+            ? generateSortByReplicas(records, limit)
+            : Promise.resolve(null),
         ]);
 
         console.log('\n🎯 AI Configuration Suggestions\n');
         console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n');
 
-        displaySection(
-          '🔍 Searchable Attributes',
-          searchableAttributes,
-          verbose
-        );
-        displaySection('📊 Custom Ranking', customRanking, verbose);
-        displaySection(
-          '🏷️  Attributes for Faceting',
-          attributesForFaceting,
-          verbose
-        );
-        displaySection('🔀 Sortable Attributes', sortableAttributes, verbose);
+        if (searchableAttributes) {
+          displaySection(
+            '🔍 Searchable Attributes',
+            searchableAttributes,
+            verbose
+          );
+        }
+        if (customRanking) {
+          displaySection('📊 Custom Ranking', customRanking, verbose);
+        }
+        if (attributesForFaceting) {
+          displaySection(
+            '🏷️  Attributes for Faceting',
+            attributesForFaceting,
+            verbose
+          );
+        }
+        if (sortableAttributes) {
+          displaySection('🔀 Sortable Attributes', sortableAttributes, verbose);
+        }
 
         const endTime = Date.now();
         const duration = (endTime - startTime) / 1000;
@@ -108,12 +150,23 @@ program
   .argument('<indexName>', 'Algolia Index Name')
   .option('-l, --limit <number>', 'Number of records to analyze', '10')
   .option('-v, --verbose', 'Show detailed reasoning for each configuration')
+  .option('--searchable', 'Compare searchable attributes only')
+  .option('--ranking', 'Compare custom ranking only')
+  .option('--faceting', 'Compare attributes for faceting only')
+  .option('--sortable', 'Compare sortable attributes only')
   .action(
     async (
       appId: string,
       apiKey: string,
       indexName: string,
-      options: { limit: string; verbose?: boolean }
+      options: {
+        limit: string;
+        verbose?: boolean;
+        searchable?: boolean;
+        ranking?: boolean;
+        faceting?: boolean;
+        sortable?: boolean;
+      }
     ) => {
       const startTime = Date.now();
 
@@ -122,6 +175,17 @@ program
 
         const verbose = Boolean(options.verbose);
         const limit = parseInt(options.limit);
+
+        // Determine which configurations to generate
+        const generateAll =
+          !options.searchable &&
+          !options.ranking &&
+          !options.faceting &&
+          !options.sortable;
+        const shouldGenerateSearchable = generateAll || options.searchable;
+        const shouldGenerateRanking = generateAll || options.ranking;
+        const shouldGenerateFaceting = generateAll || options.faceting;
+        const shouldGenerateSortable = generateAll || options.sortable;
 
         if (verbose) {
           console.log('🔧 Verbose mode enabled - will show reasoning\n');
@@ -150,42 +214,58 @@ program
           attributesForFaceting,
           sortableAttributes,
         ] = await Promise.all([
-          generateSearchableAttributes(records, limit),
-          generateCustomRanking(records, limit),
-          generateAttributesForFaceting(records, limit),
-          generateSortByReplicas(records, limit),
+          shouldGenerateSearchable
+            ? generateSearchableAttributes(records, limit)
+            : Promise.resolve(null),
+          shouldGenerateRanking
+            ? generateCustomRanking(records, limit)
+            : Promise.resolve(null),
+          shouldGenerateFaceting
+            ? generateAttributesForFaceting(records, limit)
+            : Promise.resolve(null),
+          shouldGenerateSortable
+            ? generateSortByReplicas(records, limit)
+            : Promise.resolve(null),
         ]);
 
         console.log('\n🔄 Configuration Comparison\n');
         console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n');
 
-        displayComparison(
-          '🔍 Searchable Attributes',
-          currentSettings.searchableAttributes || [],
-          searchableAttributes,
-          verbose
-        );
+        if (searchableAttributes) {
+          displayComparison(
+            '🔍 Searchable Attributes',
+            currentSettings.searchableAttributes || [],
+            searchableAttributes,
+            verbose
+          );
+        }
 
-        displayComparison(
-          '📊 Custom Ranking',
-          currentSettings.customRanking || [],
-          customRanking,
-          verbose
-        );
+        if (customRanking) {
+          displayComparison(
+            '📊 Custom Ranking',
+            currentSettings.customRanking || [],
+            customRanking,
+            verbose
+          );
+        }
 
-        displayComparison(
-          '🏷️ Attributes for Faceting',
-          currentSettings.attributesForFaceting || [],
-          attributesForFaceting,
-          verbose
-        );
+        if (attributesForFaceting) {
+          displayComparison(
+            '🏷️ Attributes for Faceting',
+            currentSettings.attributesForFaceting || [],
+            attributesForFaceting,
+            verbose
+          );
+        }
 
-        displayComparison(
-          '🔀 Sortable Attributes',
-          currentSettings.sortableAttributes || [],
-          sortableAttributes,
-          verbose
-        );
+        if (sortableAttributes) {
+          displayComparison(
+            '🔀 Sortable Attributes',
+            currentSettings.sortableAttributes || [],
+            sortableAttributes,
+            verbose
+          );
+        }
 
         const endTime = Date.now();
         const duration = (endTime - startTime) / 1000;
