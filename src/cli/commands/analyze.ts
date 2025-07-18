@@ -1,7 +1,10 @@
 import { Command } from 'commander';
 import { readFileSync } from 'fs';
 import { validateEnvVars, validateJsonFile } from '../utils/validation';
-import { generateConfigurations, ConfigurationOptions } from '../utils/generation';
+import {
+  generateConfigurations,
+  ConfigurationOptions,
+} from '../utils/generation';
 import { displaySection, displayDualModelComparison } from '../utils/display';
 
 export interface AnalyzeOptions extends ConfigurationOptions {
@@ -13,7 +16,9 @@ export interface AnalyzeOptions extends ConfigurationOptions {
 
 export function createAnalyzeCommand(): Command {
   return new Command('analyze')
-    .description('Analyze JSON records and generate AI configuration suggestions')
+    .description(
+      'Analyze JSON records and generate AI configuration suggestions'
+    )
     .argument('<file>', 'Path to JSON file containing records')
     .option('-l, --limit <number>', 'Number of records to analyze', '10')
     .option('-v, --verbose', 'Show detailed reasoning for each configuration')
@@ -21,8 +26,15 @@ export function createAnalyzeCommand(): Command {
     .option('--ranking', 'Generate custom ranking only')
     .option('--faceting', 'Generate attributes for faceting only')
     .option('--sortable', 'Generate sortable attributes only')
-    .option('-m, --model <model>', 'AI model to use (claude-3-5-haiku-latest, claude-3-5-sonnet-latest, claude-3-opus-latest, o3-mini)', 'claude-3-5-haiku-latest')
-    .option('--compare-models <models>', 'Compare two models (format: model1,model2)')
+    .option(
+      '-m, --model <model>',
+      'AI model to use (claude-3-5-haiku-latest, claude-3-5-sonnet-latest, o3-mini)',
+      'claude-3-5-haiku-latest'
+    )
+    .option(
+      '--compare-models <models>',
+      'Compare two models (format: model1,model2)'
+    )
     .action(async (file: string, options: AnalyzeOptions) => {
       const startTime = Date.now();
 
@@ -30,11 +42,13 @@ export function createAnalyzeCommand(): Command {
         // Parse models for dual-model comparison
         let model1 = options.model;
         let model2: string | undefined;
-        
+
         if (options.compareModels) {
-          const models = options.compareModels.split(',').map(m => m.trim());
+          const models = options.compareModels.split(',').map((m) => m.trim());
           if (models.length !== 2) {
-            throw new Error('--compare-models must specify exactly two models (format: model1,model2)');
+            throw new Error(
+              '--compare-models must specify exactly two models (format: model1,model2)'
+            );
           }
           [model1, model2] = models;
         }
@@ -62,12 +76,14 @@ export function createAnalyzeCommand(): Command {
         }
 
         if (model2) {
-          console.log(`⚡ Generating AI configurations with dual-model comparison: ${model1} vs ${model2}...`);
-          
+          console.log(
+            `⚡ Generating AI configurations with dual-model comparison: ${model1} vs ${model2}...`
+          );
+
           // Run both models in parallel
           const [results1, results2] = await Promise.all([
             generateConfigurations(records, limit, options, model1),
-            generateConfigurations(records, limit, options, model2)
+            generateConfigurations(records, limit, options, model2),
           ]);
 
           console.log('\n🎯 Model Comparison Results\n');
@@ -94,7 +110,10 @@ export function createAnalyzeCommand(): Command {
               verbose
             );
           }
-          if (results1.attributesForFaceting || results2.attributesForFaceting) {
+          if (
+            results1.attributesForFaceting ||
+            results2.attributesForFaceting
+          ) {
             displayDualModelComparison(
               '🏷️  Attributes for Faceting',
               results1.attributesForFaceting,
@@ -145,7 +164,11 @@ export function createAnalyzeCommand(): Command {
             );
           }
           if (sortableAttributes) {
-            displaySection('🔀 Sortable Attributes', sortableAttributes, verbose);
+            displaySection(
+              '🔀 Sortable Attributes',
+              sortableAttributes,
+              verbose
+            );
           }
         }
 

@@ -63,7 +63,7 @@ npm start -- analyze <json-file> [options]
 - `--ranking` - Generate custom ranking only
 - `--faceting` - Generate attributes for faceting only
 - `--sortable` - Generate sortable attributes only
-- `-m, --model <model>` - AI model to use (claude-3-5-haiku-latest, claude-3-5-sonnet-latest, claude-3-opus-latest, o3-mini)
+- `-m, --model <model>` - AI model to use (claude-3-5-haiku-latest, claude-3-5-sonnet-latest, o3-mini)
 - `--compare-models <models>` - Compare two models (format: model1,model2)
 - `-h, --help` - Display help for command
 
@@ -87,7 +87,7 @@ npm start -- compare <appId> <apiKey> <indexName> [options]
 - `--ranking` - Compare custom ranking only
 - `--faceting` - Compare attributes for faceting only
 - `--sortable` - Compare sortable attributes only
-- `-m, --model <model>` - AI model to use (claude-3-5-haiku-latest, claude-3-5-sonnet-latest, claude-3-opus-latest, o3-mini)
+- `-m, --model <model>` - AI model to use (claude-3-5-haiku-latest, claude-3-5-sonnet-latest, o3-mini)
 - `--compare-models <models>` - Compare two models (format: model1,model2)
 - `-h, --help` - Display help for command
 
@@ -130,11 +130,6 @@ Use Claude 3.5 Sonnet model:
 npm start -- analyze datasets/products/clean.json --model claude-3-5-sonnet-latest
 ```
 
-Use Claude 3 Opus model with verbose output:
-```bash
-npm start -- analyze datasets/products/clean.json --model claude-3-opus-latest --verbose
-```
-
 Use OpenAI o3-mini model:
 ```bash
 npm start -- analyze datasets/products/clean.json --model o3-mini
@@ -152,7 +147,7 @@ npm start -- analyze datasets/products/clean.json --compare-models claude-3-5-so
 
 Compare models with verbose reasoning:
 ```bash
-npm start -- analyze datasets/products/clean.json --compare-models claude-3-5-haiku-latest,claude-3-opus-latest --verbose
+npm start -- analyze datasets/products/clean.json --compare-models claude-3-5-haiku-latest,claude-3-5-sonnet-latest --verbose
 ```
 
 ### Compare Examples
@@ -199,7 +194,7 @@ npm start -- compare YOUR_APP_ID YOUR_API_KEY your_index_name --compare-models c
 
 Triple comparison with verbose output:
 ```bash
-npm start -- compare YOUR_APP_ID YOUR_API_KEY your_index_name --compare-models claude-3-5-haiku-latest,claude-3-opus-latest --verbose
+npm start -- compare YOUR_APP_ID YOUR_API_KEY your_index_name --compare-models claude-3-5-haiku-latest,claude-3-5-sonnet-latest --verbose
 ```
 
 ## Output
@@ -240,7 +235,6 @@ The CLI supports multiple AI models with different capabilities:
 ### Claude Models (Anthropic)
 - **`claude-3-5-haiku-latest`** (default): Fastest and most cost-effective, good for quick analysis
 - **`claude-3-5-sonnet-latest`**: Balanced performance and quality, recommended for most use cases
-- **`claude-3-opus-latest`**: Highest quality analysis, best for complex datasets or critical applications
 
 ### OpenAI Models
 - **`o3-mini`**: OpenAI's latest reasoning model, optimized for fast performance and cost-effectiveness

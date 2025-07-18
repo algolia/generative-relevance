@@ -6,7 +6,6 @@ export const DEFAULT_MODEL = 'claude-3-5-haiku-latest';
 const ANTHROPIC_MODELS = [
   'claude-3-5-haiku-latest',
   'claude-3-5-sonnet-latest',
-  'claude-3-opus-latest',
 ] as const;
 
 const OPENAI_MODELS = ['o3-mini'] as const;
