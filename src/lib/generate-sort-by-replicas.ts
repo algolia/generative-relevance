@@ -19,7 +19,8 @@ const schema = z.object({
 
 export async function generateSortByReplicas(
   records: Array<Record<string, unknown>>,
-  limit: number = 10
+  limit: number = 10,
+  customModel?: any
 ) {
   const sampleRecords = records.slice(0, limit);
 
@@ -101,7 +102,7 @@ export async function generateSortByReplicas(
 
   try {
     const { object } = await generateObject({
-      model,
+      model: customModel || model,
       maxTokens: 1000,
       temperature: 0.1,
       schema,

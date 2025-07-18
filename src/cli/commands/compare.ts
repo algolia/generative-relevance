@@ -7,6 +7,7 @@ import { fetchAlgoliaData } from '../utils/algolia';
 export interface CompareOptions extends ConfigurationOptions {
   limit: string;
   verbose?: boolean;
+  model?: string;
 }
 
 export function createCompareCommand(): Command {
@@ -21,6 +22,7 @@ export function createCompareCommand(): Command {
     .option('--ranking', 'Compare custom ranking only')
     .option('--faceting', 'Compare attributes for faceting only')
     .option('--sortable', 'Compare sortable attributes only')
+    .option('-m, --model <model>', 'AI model to use (claude-3-5-haiku-latest, claude-3-5-sonnet-latest, claude-3-opus-latest)', 'claude-3-5-haiku-latest')
     .action(async (
       appId: string,
       apiKey: string,
@@ -61,7 +63,7 @@ export function createCompareCommand(): Command {
           customRanking,
           attributesForFaceting,
           sortableAttributes,
-        } = await generateConfigurations(records, limit, options);
+        } = await generateConfigurations(records, limit, options, options.model);
 
         console.log('\n🔄 Configuration Comparison\n');
         console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n');

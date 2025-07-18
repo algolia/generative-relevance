@@ -2,6 +2,7 @@ import { generateSearchableAttributes } from '../../lib/generate-searchable-attr
 import { generateCustomRanking } from '../../lib/generate-custom-ranking';
 import { generateAttributesForFaceting } from '../../lib/generate-attributes-for-faceting';
 import { generateSortByReplicas } from '../../lib/generate-sort-by-replicas';
+import { createModel, DEFAULT_MODEL } from '../../lib/model';
 import { ConfigResult } from './display';
 
 export interface ConfigurationOptions {
@@ -25,7 +26,8 @@ export function determineConfigurationsToGenerate(options: ConfigurationOptions)
 export async function generateConfigurations(
   records: any[],
   limit: number,
-  options: ConfigurationOptions
+  options: ConfigurationOptions,
+  modelName: string = DEFAULT_MODEL
 ) {
   const {
     shouldGenerateSearchable,
@@ -34,16 +36,18 @@ export async function generateConfigurations(
     shouldGenerateSortable,
   } = determineConfigurationsToGenerate(options);
 
+  const model = createModel(modelName);
+
   const [
     searchableAttributes,
     customRanking,
     attributesForFaceting,
     sortableAttributes,
   ] = await Promise.all([
-    shouldGenerateSearchable ? generateSearchableAttributes(records, limit) : Promise.resolve(null),
-    shouldGenerateRanking ? generateCustomRanking(records, limit) : Promise.resolve(null),
-    shouldGenerateFaceting ? generateAttributesForFaceting(records, limit) : Promise.resolve(null),
-    shouldGenerateSortable ? generateSortByReplicas(records, limit) : Promise.resolve(null),
+    shouldGenerateSearchable ? generateSearchableAttributes(records, limit, model) : Promise.resolve(null),
+    shouldGenerateRanking ? generateCustomRanking(records, limit, model) : Promise.resolve(null),
+    shouldGenerateFaceting ? generateAttributesForFaceting(records, limit, model) : Promise.resolve(null),
+    shouldGenerateSortable ? generateSortByReplicas(records, limit, model) : Promise.resolve(null),
   ]);
 
   return {

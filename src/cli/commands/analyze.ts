@@ -7,6 +7,7 @@ import { displaySection } from '../utils/display';
 export interface AnalyzeOptions extends ConfigurationOptions {
   limit: string;
   verbose?: boolean;
+  model?: string;
 }
 
 export function createAnalyzeCommand(): Command {
@@ -19,6 +20,7 @@ export function createAnalyzeCommand(): Command {
     .option('--ranking', 'Generate custom ranking only')
     .option('--faceting', 'Generate attributes for faceting only')
     .option('--sortable', 'Generate sortable attributes only')
+    .option('-m, --model <model>', 'AI model to use (claude-3-5-haiku-latest, claude-3-5-sonnet-latest, claude-3-opus-latest)', 'claude-3-5-haiku-latest')
     .action(async (file: string, options: AnalyzeOptions) => {
       const startTime = Date.now();
 
@@ -48,7 +50,7 @@ export function createAnalyzeCommand(): Command {
           customRanking,
           attributesForFaceting,
           sortableAttributes,
-        } = await generateConfigurations(records, limit, options);
+        } = await generateConfigurations(records, limit, options, options.model);
 
         console.log('\n🎯 AI Configuration Suggestions\n');
         console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n');

@@ -50,6 +50,7 @@ npm start -- analyze <json-file> [options]
 - `--ranking` - Generate custom ranking only
 - `--faceting` - Generate attributes for faceting only
 - `--sortable` - Generate sortable attributes only
+- `-m, --model <model>` - AI model to use (claude-3-5-haiku-latest, claude-3-5-sonnet-latest, claude-3-opus-latest)
 - `-h, --help` - Display help for command
 
 ### Compare with Existing Index
@@ -72,6 +73,7 @@ npm start -- compare <appId> <apiKey> <indexName> [options]
 - `--ranking` - Compare custom ranking only
 - `--faceting` - Compare attributes for faceting only
 - `--sortable` - Compare sortable attributes only
+- `-m, --model <model>` - AI model to use (claude-3-5-haiku-latest, claude-3-5-sonnet-latest, claude-3-opus-latest)
 - `-h, --help` - Display help for command
 
 ## Examples
@@ -108,6 +110,16 @@ Generate faceting and sortable attributes:
 npm start -- analyze datasets/products/clean.json --faceting --sortable
 ```
 
+Use Claude 3.5 Sonnet model:
+```bash
+npm start -- analyze datasets/products/clean.json --model claude-3-5-sonnet-latest
+```
+
+Use Claude 3 Opus model with verbose output:
+```bash
+npm start -- analyze datasets/products/clean.json --model claude-3-opus-latest --verbose
+```
+
 ### Compare Examples
 
 Compare existing index with AI suggestions:
@@ -135,6 +147,11 @@ Compare only custom ranking:
 npm start -- compare YOUR_APP_ID YOUR_API_KEY your_index_name --ranking --verbose
 ```
 
+Use Claude 3.5 Sonnet model for comparison:
+```bash
+npm start -- compare YOUR_APP_ID YOUR_API_KEY your_index_name --model claude-3-5-sonnet-latest
+```
+
 ## Output
 
 The CLI generates four types of AI configuration suggestions:
@@ -145,6 +162,19 @@ The CLI generates four types of AI configuration suggestions:
 4. **🔀 Sortable Attributes** - Attributes for sorting results
 
 Each suggestion includes the recommended attributes and optional detailed reasoning (with `--verbose` flag).
+
+## Model Selection
+
+The CLI supports multiple Claude models with different capabilities:
+
+- **`claude-3-5-haiku-latest`** (default): Fastest and most cost-effective, good for quick analysis
+- **`claude-3-5-sonnet-latest`**: Balanced performance and quality, recommended for most use cases
+- **`claude-3-opus-latest`**: Highest quality analysis, best for complex datasets or critical applications
+
+Choose based on your needs:
+- Use **Haiku** for rapid prototyping and development
+- Use **Sonnet** for production analysis and detailed insights
+- Use **Opus** for complex datasets requiring nuanced understanding
 
 ## Commands
 
