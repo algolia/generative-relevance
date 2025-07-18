@@ -5,10 +5,10 @@ import { Command } from 'commander';
 import { readFileSync } from 'fs';
 import { Algoliasearch, algoliasearch, SettingsResponse } from 'algoliasearch';
 
-import { generateSearchableAttributes } from '../src/lib/generate-searchable-attributes';
-import { generateCustomRanking } from '../src/lib/generate-custom-ranking';
-import { generateAttributesForFaceting } from '../src/lib/generate-attributes-for-faceting';
-import { generateSortByReplicas } from '../src/lib/generate-sort-by-replicas';
+import { generateSearchableAttributes } from './src/lib/generate-searchable-attributes';
+import { generateCustomRanking } from './src/lib/generate-custom-ranking';
+import { generateAttributesForFaceting } from './src/lib/generate-attributes-for-faceting';
+import { generateSortByReplicas } from './src/lib/generate-sort-by-replicas';
 
 config();
 

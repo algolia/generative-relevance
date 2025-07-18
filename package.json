@@ -2,40 +2,29 @@
   "name": "generative-relevance",
   "version": "0.1.0",
   "private": true,
+  "bin": {
+    "generative-relevance": "./index.ts"
+  },
   "scripts": {
-    "dev": "next dev --turbopack",
-    "build": "next build",
-    "start": "next start",
-    "lint": "next lint",
-    "test": "vitest",
-    "cli": "tsx cli/index.ts"
+    "start": "tsx index.ts",
+    "build": "tsc",
+    "lint": "eslint .",
+    "test": "vitest"
   },
   "dependencies": {
     "@ai-sdk/anthropic": "^1.2.12",
-    "@heroicons/react": "^2.2.0",
-    "@segment/analytics-next": "^1.81.0",
-    "@segment/analytics-node": "^2.2.1",
     "ai": "^4.3.16",
     "algoliasearch": "^5.30.0",
-    "next": "15.3.5",
-    "react": "^19.0.0",
-    "react-dom": "^19.0.0",
-    "react-markdown": "^10.1.0",
-    "swr": "^2.3.4",
-    "usehooks-ts": "^3.1.1",
+    "commander": "^12.1.0",
+    "dotenv": "^16.6.1",
     "zod": "^3.25.74"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",
-    "@tailwindcss/postcss": "^4",
     "@types/node": "^20",
-    "@types/react": "^19",
-    "@types/react-dom": "^19",
-    "commander": "^12.1.0",
-    "dotenv": "^16.6.1",
+    "@typescript-eslint/eslint-plugin": "^8.37.0",
+    "@typescript-eslint/parser": "^8.37.0",
     "eslint": "^9",
-    "eslint-config-next": "15.3.5",
-    "tailwindcss": "^4",
     "tsx": "^4.20.3",
     "typescript": "^5",
     "vitest": "^3.2.4"

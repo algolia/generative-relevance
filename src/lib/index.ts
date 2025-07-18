@@ -4,5 +4,4 @@ export * from './generate-custom-ranking';
 export * from './generate-searchable-attributes';
 export * from './generate-sort-by-replicas';
 export * from './model';
-export * from './use-algolia-credentials';
 export * from './validate-attributes';

@@ -1,22 +1,27 @@
-# Generative Relevance
+# Generative Relevance CLI
 
-Demo of an AI-powered tool that automatically optimizes Algolia search configurations by analyzing your data and generating intelligent search settings.
+A CLI tool for testing AI-powered Algolia configuration generation by analyzing your data and generating intelligent search settings.
 
 ## Features
 
 - **AI-Generated Settings**: Leverages AI to determine optimal searchable attributes, custom ranking, and faceting configuration
-- **Smart Replica Management**: Automatically creates sort-by replicas for relevant fields
 - **Configuration Comparison**: Compare existing and AI-suggested configurations side-by-side
-- **CLI Tool**: Test AI configurations in your terminal
+- **No Indexing Required**: Test configurations without creating Algolia indices
+- **Parallel Processing**: Generates all configurations simultaneously
+- **Detailed Reasoning**: Understand why attributes were selected
 
-## Getting Started
-
-### Prerequisites
+## Prerequisites
 
 - Node.js 22+
 - Anthropic account with API Key
 
-### Environment Variables
+## Installation
+
+```bash
+npm install
+```
+
+## Environment Variables
 
 Create a `.env` file with your Anthropic API key:
 
@@ -24,27 +29,14 @@ Create a `.env` file with your Anthropic API key:
 ANTHROPIC_API_KEY=your_anthropic_api_key
 ```
 
-### Installation
+## Usage
 
-```bash
-npm install
-npm run dev
-```
-
-Open [http://localhost:3000](http://localhost:3000) to access the application.
-
-## CLI Tool
-
-A command-line tool for testing AI-powered Algolia configuration generation without indexing.
-
-### CLI Usage
-
-#### Analyze JSON Records
+### Analyze JSON Records
 
 Generate AI configuration suggestions from a JSON file containing records:
 
 ```bash
-npm run cli analyze <json-file> [options]
+npm start -- analyze <json-file> [options]
 ```
 
 **Arguments:**
@@ -55,12 +47,12 @@ npm run cli analyze <json-file> [options]
 - `-v, --verbose` - Show detailed reasoning for each configuration
 - `-h, --help` - Display help for command
 
-#### Compare with Existing Index
+### Compare with Existing Index
 
 Compare existing Algolia index settings with AI suggestions:
 
 ```bash
-npm run cli compare <appId> <apiKey> <indexName> [options]
+npm start -- compare <appId> <apiKey> <indexName> [options]
 ```
 
 **Arguments:**
@@ -73,43 +65,43 @@ npm run cli compare <appId> <apiKey> <indexName> [options]
 - `-v, --verbose` - Show detailed reasoning for each configuration
 - `-h, --help` - Display help for command
 
-### CLI Examples
+## Examples
 
-#### Analyze Examples
+### Analyze Examples
 
 Basic analysis:
 ```bash
-npm run cli analyze examples/products.json
+npm start -- analyze datasets/products/clean.json
 ```
 
 Analyze with detailed reasoning:
 ```bash
-npm run cli analyze examples/products.json -- --verbose
+npm start -- analyze datasets/products/clean.json --verbose
 ```
 
 Limit to 5 records with verbose output:
 ```bash
-npm run cli analyze examples/movies.json -- --limit 5 --verbose
+npm start -- analyze datasets/products/clean.json --limit 5 --verbose
 ```
 
-#### Compare Examples
+### Compare Examples
 
 Compare existing index with AI suggestions:
 ```bash
-npm run cli compare YOUR_APP_ID YOUR_API_KEY your_index_name
+npm start -- compare YOUR_APP_ID YOUR_API_KEY your_index_name
 ```
 
 Compare with verbose reasoning:
 ```bash
-npm run cli compare YOUR_APP_ID YOUR_API_KEY your_index_name -- --verbose
+npm start -- compare YOUR_APP_ID YOUR_API_KEY your_index_name --verbose
 ```
 
 Compare with limited sample size:
 ```bash
-npm run cli compare YOUR_APP_ID YOUR_API_KEY your_index_name -- --limit 20 --verbose
+npm start -- compare YOUR_APP_ID YOUR_API_KEY your_index_name --limit 20 --verbose
 ```
 
-### CLI Output
+## Output
 
 The CLI generates four types of AI configuration suggestions:
 
@@ -120,13 +112,9 @@ The CLI generates four types of AI configuration suggestions:
 
 Each suggestion includes the recommended attributes and optional detailed reasoning (with `--verbose` flag).
 
-### CLI Features
+## Commands
 
-- **No Indexing Required** - Test configurations without creating Algolia indices
-- **Parallel Processing** - Generates all configurations simultaneously
-- **Detailed Reasoning** - Understand why attributes were selected
-- **Flexible Input** - Works with any JSON array of records
-- **Fast Testing** - Quickly iterate on different datasets
-- **Index Comparison** - Compare existing Algolia index settings with AI suggestions
-- **Side-by-Side Display** - Visual comparison showing current vs suggested configurations
-- **Difference Detection** - Automatically identifies added, removed, and reordered attributes
+- `npm start`: Run the CLI
+- `npm run build`: Build the TypeScript code
+- `npm run lint`: Run ESLint
+- `npm test`: Run tests
