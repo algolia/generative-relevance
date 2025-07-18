@@ -8,7 +8,7 @@ const ANTHROPIC_MODELS = [
   'claude-3-5-sonnet-latest',
 ] as const;
 
-const OPENAI_MODELS = ['o3-mini'] as const;
+const OPENAI_MODELS = ['gpt-4.1-nano'] as const;
 
 const SUPPORTED_MODELS = [...ANTHROPIC_MODELS, ...OPENAI_MODELS];
 

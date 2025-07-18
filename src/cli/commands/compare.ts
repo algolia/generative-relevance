@@ -32,7 +32,7 @@ export function createCompareCommand(): Command {
     .option('--sortable', 'Compare sortable attributes only')
     .option(
       '-m, --model <model>',
-      'AI model to use (claude-3-5-haiku-latest, claude-3-5-sonnet-latest, o3-mini)',
+      'AI model to use (claude-3-5-haiku-latest, claude-3-5-sonnet-latest, gpt-4.1-nano)',
       'claude-3-5-haiku-latest'
     )
     .option(

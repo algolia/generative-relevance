@@ -15,7 +15,7 @@ A CLI tool for testing AI-powered Algolia configuration generation by analyzing 
 
 - Node.js 22+
 - Anthropic account with API Key (for Claude models)
-- OpenAI account with API Key (for OpenAI models like o3-mini)
+- OpenAI account with API Key (for OpenAI models like gpt-4.1-nano)
 
 ## Installation
 
@@ -32,7 +32,7 @@ For Claude models (default):
 ANTHROPIC_API_KEY=your_anthropic_api_key_here
 ```
 
-For OpenAI models (o3-mini):
+For OpenAI models (gpt-4.1-nano):
 ```bash
 OPENAI_API_KEY=your_openai_api_key_here
 ```
@@ -63,7 +63,7 @@ npm start -- analyze <json-file> [options]
 - `--ranking` - Generate custom ranking only
 - `--faceting` - Generate attributes for faceting only
 - `--sortable` - Generate sortable attributes only
-- `-m, --model <model>` - AI model to use (claude-3-5-haiku-latest, claude-3-5-sonnet-latest, o3-mini)
+- `-m, --model <model>` - AI model to use (claude-3-5-haiku-latest, claude-3-5-sonnet-latest, gpt-4.1-nano)
 - `--compare-models <models>` - Compare two models (format: model1,model2)
 - `-h, --help` - Display help for command
 
@@ -87,7 +87,7 @@ npm start -- compare <appId> <apiKey> <indexName> [options]
 - `--ranking` - Compare custom ranking only
 - `--faceting` - Compare attributes for faceting only
 - `--sortable` - Compare sortable attributes only
-- `-m, --model <model>` - AI model to use (claude-3-5-haiku-latest, claude-3-5-sonnet-latest, o3-mini)
+- `-m, --model <model>` - AI model to use (claude-3-5-haiku-latest, claude-3-5-sonnet-latest, gpt-4.1-nano)
 - `--compare-models <models>` - Compare two models (format: model1,model2)
 - `-h, --help` - Display help for command
 
@@ -130,19 +130,19 @@ Use Claude 3.5 Sonnet model:
 npm start -- analyze datasets/products/clean.json --model claude-3-5-sonnet-latest
 ```
 
-Use OpenAI o3-mini model:
+Use OpenAI gpt-4.1-nano model:
 ```bash
-npm start -- analyze datasets/products/clean.json --model o3-mini
+npm start -- analyze datasets/products/clean.json --model gpt-4.1-nano
 ```
 
-Use o3-mini with specific configuration types:
+Use gpt-4.1-nano with specific configuration types:
 ```bash
-npm start -- analyze datasets/products/clean.json --model o3-mini --searchable --ranking --verbose
+npm start -- analyze datasets/products/clean.json --model gpt-4.1-nano --searchable --ranking --verbose
 ```
 
 Compare two models side-by-side:
 ```bash
-npm start -- analyze datasets/products/clean.json --compare-models claude-3-5-sonnet-latest,o3-mini
+npm start -- analyze datasets/products/clean.json --compare-models claude-3-5-sonnet-latest,gpt-4.1-nano
 ```
 
 Compare models with verbose reasoning:
@@ -182,14 +182,14 @@ Use Claude 3.5 Sonnet model for comparison:
 npm start -- compare YOUR_APP_ID YOUR_API_KEY your_index_name --model claude-3-5-sonnet-latest
 ```
 
-Use OpenAI o3-mini for comparison:
+Use OpenAI gpt-4.1-nano for comparison:
 ```bash
-npm start -- compare YOUR_APP_ID YOUR_API_KEY your_index_name --model o3-mini --verbose
+npm start -- compare YOUR_APP_ID YOUR_API_KEY your_index_name --model gpt-4.1-nano --verbose
 ```
 
 Compare index with two AI models:
 ```bash
-npm start -- compare YOUR_APP_ID YOUR_API_KEY your_index_name --compare-models claude-3-5-sonnet-latest,o3-mini
+npm start -- compare YOUR_APP_ID YOUR_API_KEY your_index_name --compare-models claude-3-5-sonnet-latest,gpt-4.1-nano
 ```
 
 Triple comparison with verbose output:
@@ -237,13 +237,7 @@ The CLI supports multiple AI models with different capabilities:
 - **`claude-3-5-sonnet-latest`**: Balanced performance and quality, recommended for most use cases
 
 ### OpenAI Models
-- **`o3-mini`**: OpenAI's latest reasoning model, optimized for fast performance and cost-effectiveness
-
-Choose based on your needs:
-- Use **Haiku** for rapid prototyping and development
-- Use **Sonnet** for production analysis and detailed insights
-- Use **Opus** for complex datasets requiring nuanced understanding
-- Use **o3-mini** for OpenAI's reasoning capabilities at a lower cost
+- **`gpt-4.1-nano`**: OpenAI's fastest, most cost-effective GPT-4.1 model
 
 ## Commands
 
