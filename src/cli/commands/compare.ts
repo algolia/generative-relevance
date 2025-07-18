@@ -1,13 +1,14 @@
 import { Command } from 'commander';
 import { validateEnvVars } from '../utils/validation';
 import { generateConfigurations, ConfigurationOptions } from '../utils/generation';
-import { displayComparison } from '../utils/display';
+import { displayComparison, displayDualModelComparison, displayTripleComparison } from '../utils/display';
 import { fetchAlgoliaData } from '../utils/algolia';
 
 export interface CompareOptions extends ConfigurationOptions {
   limit: string;
   verbose?: boolean;
   model?: string;
+  compareModels?: string;
 }
 
 export function createCompareCommand(): Command {
@@ -23,6 +24,7 @@ export function createCompareCommand(): Command {
     .option('--faceting', 'Compare attributes for faceting only')
     .option('--sortable', 'Compare sortable attributes only')
     .option('-m, --model <model>', 'AI model to use (claude-3-5-haiku-latest, claude-3-5-sonnet-latest, claude-3-opus-latest, o3-mini)', 'claude-3-5-haiku-latest')
+    .option('--compare-models <models>', 'Compare two models (format: model1,model2)')
     .action(async (
       appId: string,
       apiKey: string,
@@ -32,7 +34,23 @@ export function createCompareCommand(): Command {
       const startTime = Date.now();
 
       try {
-        validateEnvVars(options.model);
+        // Parse models for dual-model comparison
+        let model1 = options.model;
+        let model2: string | undefined;
+        
+        if (options.compareModels) {
+          const models = options.compareModels.split(',').map(m => m.trim());
+          if (models.length !== 2) {
+            throw new Error('--compare-models must specify exactly two models (format: model1,model2)');
+          }
+          [model1, model2] = models;
+        }
+
+        // Validate API keys for all models being used
+        validateEnvVars(model1);
+        if (model2) {
+          validateEnvVars(model2);
+        }
 
         const verbose = Boolean(options.verbose);
         const limit = parseInt(options.limit);
@@ -56,52 +74,111 @@ export function createCompareCommand(): Command {
           `📊 Analyzing ${Math.min(records.length, limit)} records...\n`
         );
 
-        console.log('⚡ Generating AI configurations...');
+        if (model2) {
+          console.log(`⚡ Generating AI configurations with dual-model comparison: ${model1} vs ${model2}...`);
+          
+          // Run both models in parallel
+          const [results1, results2] = await Promise.all([
+            generateConfigurations(records, limit, options, model1),
+            generateConfigurations(records, limit, options, model2)
+          ]);
 
-        const {
-          searchableAttributes,
-          customRanking,
-          attributesForFaceting,
-          sortableAttributes,
-        } = await generateConfigurations(records, limit, options, options.model);
+          console.log('\n🔄 Triple Configuration Comparison\n');
+          console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n');
 
-        console.log('\n🔄 Configuration Comparison\n');
-        console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n');
+          // Display triple comparisons (Current vs Model1 vs Model2)
+          if (results1.searchableAttributes || results2.searchableAttributes) {
+            displayTripleComparison(
+              '🔍 Searchable Attributes',
+              currentSettings.searchableAttributes || [],
+              results1.searchableAttributes,
+              results2.searchableAttributes,
+              model1!,
+              model2,
+              verbose
+            );
+          }
+          if (results1.customRanking || results2.customRanking) {
+            displayTripleComparison(
+              '📊 Custom Ranking',
+              currentSettings.customRanking || [],
+              results1.customRanking,
+              results2.customRanking,
+              model1!,
+              model2,
+              verbose
+            );
+          }
+          if (results1.attributesForFaceting || results2.attributesForFaceting) {
+            displayTripleComparison(
+              '🏷️ Attributes for Faceting',
+              currentSettings.attributesForFaceting || [],
+              results1.attributesForFaceting,
+              results2.attributesForFaceting,
+              model1!,
+              model2,
+              verbose
+            );
+          }
+          if (results1.sortableAttributes || results2.sortableAttributes) {
+            displayTripleComparison(
+              '🔀 Sortable Attributes',
+              currentSettings.sortableAttributes || [],
+              results1.sortableAttributes,
+              results2.sortableAttributes,
+              model1!,
+              model2,
+              verbose
+            );
+          }
+        } else {
+          console.log('⚡ Generating AI configurations...');
 
-        if (searchableAttributes) {
-          displayComparison(
-            '🔍 Searchable Attributes',
-            currentSettings.searchableAttributes || [],
+          const {
             searchableAttributes,
-            verbose
-          );
-        }
-
-        if (customRanking) {
-          displayComparison(
-            '📊 Custom Ranking',
-            currentSettings.customRanking || [],
             customRanking,
-            verbose
-          );
-        }
-
-        if (attributesForFaceting) {
-          displayComparison(
-            '🏷️ Attributes for Faceting',
-            currentSettings.attributesForFaceting || [],
             attributesForFaceting,
-            verbose
-          );
-        }
-
-        if (sortableAttributes) {
-          displayComparison(
-            '🔀 Sortable Attributes',
-            currentSettings.sortableAttributes || [],
             sortableAttributes,
-            verbose
-          );
+          } = await generateConfigurations(records, limit, options, model1);
+
+          console.log('\n🔄 Configuration Comparison\n');
+          console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n');
+
+          if (searchableAttributes) {
+            displayComparison(
+              '🔍 Searchable Attributes',
+              currentSettings.searchableAttributes || [],
+              searchableAttributes,
+              verbose
+            );
+          }
+
+          if (customRanking) {
+            displayComparison(
+              '📊 Custom Ranking',
+              currentSettings.customRanking || [],
+              customRanking,
+              verbose
+            );
+          }
+
+          if (attributesForFaceting) {
+            displayComparison(
+              '🏷️ Attributes for Faceting',
+              currentSettings.attributesForFaceting || [],
+              attributesForFaceting,
+              verbose
+            );
+          }
+
+          if (sortableAttributes) {
+            displayComparison(
+              '🔀 Sortable Attributes',
+              currentSettings.sortableAttributes || [],
+              sortableAttributes,
+              verbose
+            );
+          }
         }
 
         const endTime = Date.now();

@@ -64,6 +64,7 @@ npm start -- analyze <json-file> [options]
 - `--faceting` - Generate attributes for faceting only
 - `--sortable` - Generate sortable attributes only
 - `-m, --model <model>` - AI model to use (claude-3-5-haiku-latest, claude-3-5-sonnet-latest, claude-3-opus-latest, o3-mini)
+- `--compare-models <models>` - Compare two models (format: model1,model2)
 - `-h, --help` - Display help for command
 
 ### Compare with Existing Index
@@ -87,6 +88,7 @@ npm start -- compare <appId> <apiKey> <indexName> [options]
 - `--faceting` - Compare attributes for faceting only
 - `--sortable` - Compare sortable attributes only
 - `-m, --model <model>` - AI model to use (claude-3-5-haiku-latest, claude-3-5-sonnet-latest, claude-3-opus-latest, o3-mini)
+- `--compare-models <models>` - Compare two models (format: model1,model2)
 - `-h, --help` - Display help for command
 
 ## Examples
@@ -143,6 +145,16 @@ Use o3-mini with specific configuration types:
 npm start -- analyze datasets/products/clean.json --model o3-mini --searchable --ranking --verbose
 ```
 
+Compare two models side-by-side:
+```bash
+npm start -- analyze datasets/products/clean.json --compare-models claude-3-5-sonnet-latest,o3-mini
+```
+
+Compare models with verbose reasoning:
+```bash
+npm start -- analyze datasets/products/clean.json --compare-models claude-3-5-haiku-latest,claude-3-opus-latest --verbose
+```
+
 ### Compare Examples
 
 Compare existing index with AI suggestions:
@@ -180,6 +192,16 @@ Use OpenAI o3-mini for comparison:
 npm start -- compare YOUR_APP_ID YOUR_API_KEY your_index_name --model o3-mini --verbose
 ```
 
+Compare index with two AI models:
+```bash
+npm start -- compare YOUR_APP_ID YOUR_API_KEY your_index_name --compare-models claude-3-5-sonnet-latest,o3-mini
+```
+
+Triple comparison with verbose output:
+```bash
+npm start -- compare YOUR_APP_ID YOUR_API_KEY your_index_name --compare-models claude-3-5-haiku-latest,claude-3-opus-latest --verbose
+```
+
 ## Output
 
 The CLI generates four types of AI configuration suggestions:
@@ -190,6 +212,26 @@ The CLI generates four types of AI configuration suggestions:
 4. **🔀 Sortable Attributes** - Attributes for sorting results
 
 Each suggestion includes the recommended attributes and optional detailed reasoning (with `--verbose` flag).
+
+## Dual-Model Comparison
+
+The CLI supports comparing outputs from two different AI models simultaneously:
+
+### For Analysis (`analyze` command):
+- Compare two models side-by-side to see different AI perspectives
+- Useful for understanding model differences and choosing the best approach
+- Shows differences between model outputs and individual reasoning
+
+### For Index Comparison (`compare` command):
+- Triple comparison: Current Index vs Model 1 vs Model 2
+- See how different AI models would improve your existing configuration
+- Identify consensus recommendations and model-specific suggestions
+
+### Benefits:
+- **Quality Assurance**: Cross-validate recommendations across models
+- **Model Selection**: Choose the best model for your specific use case
+- **Insight Generation**: Understand different AI reasoning approaches
+- **Cost Optimization**: Compare expensive vs. cost-effective models
 
 ## Model Selection
 
