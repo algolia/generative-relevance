@@ -4,12 +4,13 @@ A CLI tool for testing AI-powered Algolia configuration generation by analyzing 
 
 ## Features
 
-- **AI-Generated Settings**: Leverages AI to determine optimal searchable attributes, custom ranking, and faceting configuration
+- **AI-Generated Settings**: Leverages AI to determine optimal index configuration
 - **Configuration Comparison**: Compare existing and AI-suggested configurations side-by-side
-- **No Indexing Required**: Test configurations without creating Algolia indices
 - **Parallel Processing**: Generates all configurations simultaneously
 - **Selective Generation**: Generates only the configuration you want
 - **Detailed Reasoning**: Understand why attributes were selected
+- **Model Comparison**: Find out which model gives the best results
+- **Cost Analysis**: Track and compare costs per model
 
 ## Prerequisites
 
@@ -32,7 +33,7 @@ For Claude models (default):
 ANTHROPIC_API_KEY=your_anthropic_api_key_here
 ```
 
-For OpenAI models (gpt-4.1-nano):
+For OpenAI models:
 ```bash
 OPENAI_API_KEY=your_openai_api_key_here
 ```
@@ -45,7 +46,7 @@ OPENAI_API_KEY=your_openai_api_key_here
 
 ## Usage
 
-### Analyze JSON Records
+### Analyze JSON records
 
 Generate AI configuration suggestions from a JSON file containing records:
 
@@ -67,7 +68,7 @@ npm start -- analyze <json-file> [options]
 - `--compare-models <models>` - Compare two models (format: model1,model2)
 - `-h, --help` - Display help for command
 
-### Compare with Existing Index
+### Compare with existing index
 
 Compare existing Algolia index settings with AI suggestions:
 
@@ -93,7 +94,7 @@ npm start -- compare <appId> <apiKey> <indexName> [options]
 
 ## Examples
 
-### Analyze Examples
+### Analyze examples
 
 Basic analysis:
 ```bash
@@ -150,7 +151,7 @@ Compare models with verbose reasoning:
 npm start -- analyze datasets/products/clean.json --compare-models claude-3-5-haiku-latest,claude-3-5-sonnet-latest --verbose
 ```
 
-### Compare Examples
+### Compare examples
 
 Compare existing index with AI suggestions:
 ```bash
