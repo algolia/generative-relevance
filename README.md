@@ -15,7 +15,7 @@ A CLI tool for testing AI-powered Algolia configuration generation by analyzing 
 
 - Node.js 22+
 - Anthropic account with API Key (for Claude models)
-- OpenAI account with API Key (for OpenAI models like gpt-4.1-nano)
+- OpenAI account with API Key (for OpenAI models)
 
 ## Installation
 
@@ -130,12 +130,12 @@ Use Claude 3.5 Sonnet model:
 npm start -- analyze datasets/products/clean.json --model claude-3-5-sonnet-latest
 ```
 
-Use OpenAI gpt-4.1-nano model:
+Use OpenAI GPT-4.1 nano model:
 ```bash
 npm start -- analyze datasets/products/clean.json --model gpt-4.1-nano
 ```
 
-Use gpt-4.1-nano with specific configuration types:
+Use GPT-4.1 nano with specific configuration types:
 ```bash
 npm start -- analyze datasets/products/clean.json --model gpt-4.1-nano --searchable --ranking --verbose
 ```
