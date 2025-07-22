@@ -4,12 +4,10 @@ import {
   generateConfigurations,
   ConfigurationOptions,
 } from '../utils/generation';
-import {
-  displayComparison,
-  displayDualModelComparison,
-  displayTripleComparison,
-} from '../utils/display';
+import { displayComparison, displayTripleComparison } from '../utils/display';
 import { fetchAlgoliaData } from '../utils/algolia';
+import { getCliCostSummary } from '../../lib';
+import { formatCostSummary } from '../utils/format-cost-summary';
 
 export interface CompareOptions extends ConfigurationOptions {
   limit: string;
@@ -214,6 +212,9 @@ export function createCompareCommand(): Command {
           console.log(
             `\n✅ Comparison complete! (took ${duration.toFixed(2)}s)`
           );
+
+          // Display cost summary
+          console.log(formatCostSummary(getCliCostSummary()));
         } catch (err) {
           console.error(
             '❌ Error:',

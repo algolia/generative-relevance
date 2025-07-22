@@ -2,7 +2,8 @@ import { generateObject } from 'ai';
 import z from 'zod';
 
 import { validateAttributes } from './validate-attributes';
-import { model } from './model';
+import { getModelName, model } from './model';
+import { addCliUsage } from './costs-tracker';
 
 const schema = z.object({
   searchableAttributes: z
@@ -74,13 +75,23 @@ export async function generateSearchableAttributes(
   `;
 
   try {
-    const { object } = await generateObject({
+    const { object, usage } = await generateObject({
       model: customModel || model,
       maxTokens: 1000,
       temperature: 0.1,
       schema,
       prompt,
     });
+
+    if (usage) {
+      const modelName = getModelName(customModel);
+
+      addCliUsage(modelName, {
+        promptTokens: usage.promptTokens,
+        completionTokens: usage.completionTokens,
+        totalTokens: usage.totalTokens,
+      });
+    }
 
     // Validate that all suggested attributes actually exist in the records
     const searchableAttributes = validateAttributes(

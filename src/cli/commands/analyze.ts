@@ -6,6 +6,8 @@ import {
   ConfigurationOptions,
 } from '../utils/generation';
 import { displaySection, displayDualModelComparison } from '../utils/display';
+import { getCliCostSummary } from '../../lib';
+import { formatCostSummary } from '../utils/format-cost-summary';
 
 export interface AnalyzeOptions extends ConfigurationOptions {
   limit: string;
@@ -175,6 +177,9 @@ export function createAnalyzeCommand(): Command {
         const endTime = Date.now();
         const duration = (endTime - startTime) / 1000;
         console.log(`\n✅ Analysis complete! (took ${duration.toFixed(2)}s)`);
+
+        // Display cost summary
+        console.log(formatCostSummary(getCliCostSummary()));
       } catch (err) {
         console.error(
           '❌ Error:',

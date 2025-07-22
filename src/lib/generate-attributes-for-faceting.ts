@@ -1,9 +1,10 @@
-import { generateObject } from 'ai';
+import { generateObject, LanguageModelV1 } from 'ai';
 import z from 'zod';
 
 import { detectHierarchicalFacets } from './detect-hierarchical-facets';
 import { validateAttributes } from './validate-attributes';
-import { model } from './model';
+import { getModelName, model } from './model';
+import { addCliUsage } from './costs-tracker';
 
 const schema = z.object({
   attributesForFaceting: z
@@ -21,7 +22,7 @@ const schema = z.object({
 export async function generateAttributesForFaceting(
   records: Array<Record<string, unknown>>,
   limit: number = 10,
-  customModel?: any
+  customModel?: LanguageModelV1
 ) {
   const sampleRecords = records.slice(0, limit);
 
@@ -85,13 +86,23 @@ export async function generateAttributesForFaceting(
   `;
 
   try {
-    const { object } = await generateObject({
+    const { object, usage } = await generateObject({
       model: customModel || model,
       maxTokens: 1000,
       temperature: 0.1,
       schema,
       prompt,
     });
+
+    if (usage) {
+      const modelName = getModelName(customModel);
+
+      addCliUsage(modelName, {
+        promptTokens: usage.promptTokens,
+        completionTokens: usage.completionTokens,
+        totalTokens: usage.totalTokens,
+      });
+    }
 
     // Validate that all suggested attributes actually exist in the records
     const validatedAttributes = validateAttributes(
