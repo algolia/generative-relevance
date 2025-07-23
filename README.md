@@ -1,248 +1,184 @@
-# Generative Relevance CLI
+# 🧠 Generative Relevance CLI
 
-A CLI tool for testing AI-powered Algolia configuration generation by analyzing your data and generating intelligent search settings.
+> **AI-powered Algolia configuration generation** - Analyze your data and generate intelligent search settings automatically.
 
-## Features
+## ✨ Features
 
-- **AI-Generated Settings**: Leverages AI to determine optimal index configuration
-- **Configuration Comparison**: Compare existing and AI-suggested configurations side-by-side
-- **Parallel Processing**: Generates all configurations simultaneously
-- **Selective Generation**: Generates only the configuration you want
-- **Detailed Reasoning**: Understand why attributes were selected
-- **Model Comparison**: Find out which model gives the best results
-- **Cost Analysis**: Track and compare costs per model
+- 🤖 **AI-Generated Settings** - Leverages LLMs to determine optimal configurations
+- 🔄 **Configuration Comparison** - Compare existing vs. AI-suggested configurations side-by-side  
+- ⚡ **Multi-Model Support** - Compare outputs from different AI models simultaneously
+- 🎯 **Selective Generation** - Generate only specific configuration types (searchable, ranking, faceting, sortable)
+- 💡 **Detailed Reasoning** - Understand the AI's decision-making process
+- 💰 **Cost Analysis** - Track and compare costs across different models
 
-## Prerequisites
+## 🚀 Quick Start
+
+### Prerequisites
 
 - Node.js 22+
-- Anthropic account with API Key (for Claude models)
-- OpenAI account with API Key (for OpenAI models)
+- API keys for your preferred AI provider:
+  - [Anthropic API Key](https://console.anthropic.com/) (for Claude models)
+  - [OpenAI API Key](https://platform.openai.com/) (for GPT models)
 
-## Installation
+### Installation
 
-```bash
+```sh
 npm install
 ```
 
-## Environment Variables
+### Setup
 
-Create a `.env` file with the appropriate API keys:
+Create a `.env` file in the project root:
 
-For Claude models (default):
-```bash
+```sh
+# For Claude models (default)
 ANTHROPIC_API_KEY=your_anthropic_api_key_here
-```
 
-For OpenAI models:
-```bash
+# For OpenAI models  
 OPENAI_API_KEY=your_openai_api_key_here
 ```
 
-For both providers:
-```bash
-ANTHROPIC_API_KEY=your_anthropic_api_key_here
-OPENAI_API_KEY=your_openai_api_key_here
-```
+## 📖 Usage
 
-## Usage
+### 🔍 Analyze Command
 
-### Analyze JSON records
+Generate AI configuration suggestions from your JSON data:
 
-Generate AI configuration suggestions from a JSON file containing records:
-
-```bash
+```sh
 npm start -- analyze <json-file> [options]
 ```
 
-**Arguments:**
-- `<json-file>` - Path to JSON file containing an array of records
+| Option | Description |
+|--------|-------------|
+| `<json-file>` | Path to JSON file containing an array of records |
+| `-l, --limit <number>` | Number of records to analyze (default: 10) |
+| `-v, --verbose` | Show detailed AI reasoning for each configuration |
+| `--searchable` | Generate searchable attributes only |
+| `--ranking` | Generate custom ranking only |
+| `--faceting` | Generate attributes for faceting only |
+| `--sortable` | Generate sortable attributes only |
+| `-m, --model <model>` | Choose AI model (see [Models](#-available-models)) |
+| `--compare-models <models>` | Compare two models (format: `model1,model2`) |
 
-**Options:**
-- `-l, --limit <number>` - Number of records to analyze (default: 10)
-- `-v, --verbose` - Show detailed reasoning for each configuration
-- `--searchable` - Generate searchable attributes only
-- `--ranking` - Generate custom ranking only
-- `--faceting` - Generate attributes for faceting only
-- `--sortable` - Generate sortable attributes only
-- `-m, --model <model>` - AI model to use (claude-3-5-haiku-latest, claude-3-5-sonnet-latest, gpt-4.1-nano)
-- `--compare-models <models>` - Compare two models (format: model1,model2)
-- `-h, --help` - Display help for command
+### 🔄 Compare Command  
+Compare your existing Algolia index with AI suggestions:
 
-### Compare with existing index
-
-Compare existing Algolia index settings with AI suggestions:
-
-```bash
+```sh
 npm start -- compare <appId> <apiKey> <indexName> [options]
 ```
 
-**Arguments:**
-- `<appId>` - Your Algolia App ID
-- `<apiKey>` - Your Algolia Admin API Key
-- `<indexName>` - Name of the Algolia index to compare
+| Option | Description |
+|--------|-------------|
+| `<appId>` | Your Algolia App ID |
+| `<apiKey>` | Your Algolia Admin API Key |
+| `<indexName>` | Name of the Algolia index to compare |
+| *All other options* | Same as `analyze` command |
 
-**Options:**
-- `-l, --limit <number>` - Number of records to analyze (default: 10)
-- `-v, --verbose` - Show detailed reasoning for each configuration
-- `--searchable` - Compare searchable attributes only
-- `--ranking` - Compare custom ranking only
-- `--faceting` - Compare attributes for faceting only
-- `--sortable` - Compare sortable attributes only
-- `-m, --model <model>` - AI model to use (claude-3-5-haiku-latest, claude-3-5-sonnet-latest, gpt-4.1-nano)
-- `--compare-models <models>` - Compare two models (format: model1,model2)
-- `-h, --help` - Display help for command
+> [!NOTE]  
+> Your Algolia credentials are only used to retrieve indices, they're never sent to LLMs.
 
-## Examples
+## 💡 Examples
 
-### Analyze examples
+### 🔍 Analyze Examples
 
-Basic analysis:
-```bash
+<details>
+<summary><strong>Basic Usage</strong></summary>
+
+```sh
+# Quick analysis with default settings
 npm start -- analyze datasets/products/clean.json
-```
 
-Analyze with detailed reasoning:
-```bash
+# Detailed analysis with AI reasoning  
 npm start -- analyze datasets/products/clean.json --verbose
-```
 
-Limit to 5 records with verbose output:
-```bash
+# Analyze only 5 records with detailed output
 npm start -- analyze datasets/products/clean.json --limit 5 --verbose
 ```
+</details>
 
-Generate only searchable attributes:
-```bash
+<details>
+<summary><strong>Selective Configuration</strong></summary>
+
+```sh
+# Generate only searchable attributes
 npm start -- analyze datasets/products/clean.json --searchable
-```
 
-Generate only custom ranking:
-```bash
+# Generate only custom ranking with reasoning
 npm start -- analyze datasets/products/clean.json --ranking --verbose
-```
 
-Generate faceting and sortable attributes:
-```bash
+# Generate faceting and sortable attributes
 npm start -- analyze datasets/products/clean.json --faceting --sortable
 ```
+</details>
 
-Use Claude 3.5 Sonnet model:
-```bash
-npm start -- analyze datasets/products/clean.json --model claude-3-5-sonnet-latest
-```
+<details>
+<summary><strong>Model Comparison</strong></summary>
 
-Use OpenAI GPT-4.1 nano model:
-```bash
-npm start -- analyze datasets/products/clean.json --model gpt-4.1-nano
-```
-
-Use GPT-4.1 nano with specific configuration types:
-```bash
-npm start -- analyze datasets/products/clean.json --model gpt-4.1-nano --searchable --ranking --verbose
-```
-
-Compare two models side-by-side:
-```bash
+```sh
+# Compare two models side-by-side
 npm start -- analyze datasets/products/clean.json --compare-models claude-3-5-sonnet-latest,gpt-4.1-nano
-```
 
-Compare models with verbose reasoning:
-```bash
+# Compare models with detailed reasoning
 npm start -- analyze datasets/products/clean.json --compare-models claude-3-5-haiku-latest,claude-3-5-sonnet-latest --verbose
 ```
+</details>
 
-### Compare examples
+### 🔄 Compare Examples
 
-Compare existing index with AI suggestions:
-```bash
-npm start -- compare YOUR_APP_ID YOUR_API_KEY your_index_name
-```
+<details>
+<summary><strong>Index Comparison</strong></summary>
 
-Compare with verbose reasoning:
-```bash
+```sh
+# Compare your existing index with AI suggestions
 npm start -- compare YOUR_APP_ID YOUR_API_KEY your_index_name --verbose
-```
 
-Compare with limited sample size:
-```bash
-npm start -- compare YOUR_APP_ID YOUR_API_KEY your_index_name --limit 20 --verbose
-```
+# Compare specific configuration types only
+npm start -- compare YOUR_APP_ID YOUR_API_KEY your_index_name --searchable --ranking
 
-Compare only searchable attributes:
-```bash
-npm start -- compare YOUR_APP_ID YOUR_API_KEY your_index_name --searchable
+# Triple comparison: Index vs Model A vs Model B
+npm start -- compare YOUR_APP_ID YOUR_API_KEY your_index_name --compare-models claude-3-5-sonnet-latest,gpt-4.1-nano --verbose
 ```
+</details>
 
-Compare only custom ranking:
-```bash
-npm start -- compare YOUR_APP_ID YOUR_API_KEY your_index_name --ranking --verbose
-```
-
-Use Claude 3.5 Sonnet model for comparison:
-```bash
-npm start -- compare YOUR_APP_ID YOUR_API_KEY your_index_name --model claude-3-5-sonnet-latest
-```
-
-Use OpenAI gpt-4.1-nano for comparison:
-```bash
-npm start -- compare YOUR_APP_ID YOUR_API_KEY your_index_name --model gpt-4.1-nano --verbose
-```
-
-Compare index with two AI models:
-```bash
-npm start -- compare YOUR_APP_ID YOUR_API_KEY your_index_name --compare-models claude-3-5-sonnet-latest,gpt-4.1-nano
-```
-
-Triple comparison with verbose output:
-```bash
-npm start -- compare YOUR_APP_ID YOUR_API_KEY your_index_name --compare-models claude-3-5-haiku-latest,claude-3-5-sonnet-latest --verbose
-```
-
-## Output
+## 📊 Output Types
 
 The CLI generates four types of AI configuration suggestions:
 
-1. **🔍 Searchable Attributes** - Attributes users can search for
-2. **📊 Custom Ranking** - Attributes for relevance ranking
-3. **🏷️ Attributes for Faceting** - Attributes for filtering
-4. **🔀 Sortable Attributes** - Attributes for sorting results
+| Type | Icon | Description |
+|------|------|-------------|
+| **Searchable Attributes** | 🔍 | Attributes users can search for |
+| **Custom Ranking** | 📊 | Attributes for relevance ranking |
+| **Attributes for Faceting** | 🏷️ | Attributes for filtering |  
+| **Sortable Attributes** | 🔀 | Attributes for sorting results |
 
-Each suggestion includes the recommended attributes and optional detailed reasoning (with `--verbose` flag).
+> **💡 Pro Tip**: Use the `--verbose` flag to see detailed AI reasoning behind each recommendation.
 
-## Dual-Model Comparison
+## 🤖 Available Models
 
-The CLI supports comparing outputs from two different AI models simultaneously:
+| Provider | Model | Speed | Cost |
+|----------|-------|-------|------|
+| **Anthropic** | `claude-3-5-haiku-latest` (default) | ⚡⚡⚡ | 💰 |
+| **Anthropic** | `claude-3-5-sonnet-latest` | ⚡⚡ | 💰💰 |
+| **OpenAI** | `gpt-4.1-nano` | ⚡⚡⚡ | 💰 |
 
-### For Analysis (`analyze` command):
-- Compare two models side-by-side to see different AI perspectives
-- Useful for understanding model differences and choosing the best approach
-- Shows differences between model outputs and individual reasoning
+## 🔄 Model Comparison Benefits
 
-### For Index Comparison (`compare` command):
-- Triple comparison: Current Index vs Model 1 vs Model 2
-- See how different AI models would improve your existing configuration
-- Identify consensus recommendations and model-specific suggestions
+### 🔍 For Analysis
 
-### Benefits:
-- **Quality Assurance**: Cross-validate recommendations across models
-- **Model Selection**: Choose the best model for your specific use case
-- **Insight Generation**: Understand different AI reasoning approaches
-- **Cost Optimization**: Compare expensive vs. cost-effective models
+- **Cross-validation** - See different AI perspectives on your data
+- **Quality assurance** - Identify consensus recommendations  
+- **Model selection** - Choose the best approach for your use case
 
-## Model Selection
+### 🔄 For Index Comparison
 
-The CLI supports multiple AI models with different capabilities:
+- **Triple comparison** - Current configuration vs. Model A vs. Model B
+- **Optimization insights** - See how different AIs would improve your setup
+- **Cost vs. quality** - Compare expensive vs. cost-effective models
 
-### Claude Models (Anthropic)
-- **`claude-3-5-haiku-latest`** (default): Fastest and most cost-effective, good for quick analysis
-- **`claude-3-5-sonnet-latest`**: Balanced performance and quality, recommended for most use cases
+## 🛠️ Development Commands
 
-### OpenAI Models
-- **`gpt-4.1-nano`**: OpenAI's fastest, most cost-effective GPT-4.1 model
-
-## Commands
-
-- `npm start`: Run the CLI
-- `npm run build`: Build the TypeScript code
-- `npm run lint`: Run ESLint
-- `npm test`: Run tests
+```sh
+npm start          # Run the CLI
+npm run lint       # Run ESLint
+npm test           # Run tests
+```
