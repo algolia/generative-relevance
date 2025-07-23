@@ -1,0 +1,1647 @@
+[
+  {
+    "name": "CloudSync Analytics",
+    "description": "Real-time data synchronization and analytics platform for enterprise businesses",
+    "industry": "Data Analytics",
+    "specializations": [
+      "Real-time Analytics",
+      "Data Integration",
+      "Business Intelligence"
+    ],
+    "employeeCount": 450,
+    "headquarters": "San Francisco, CA, USA",
+    "locations": ["San Francisco, CA", "Austin, TX", "London, UK", "Singapore"],
+    "customers": ["TechCorp", "Global Retail Inc", "FinanceHub", "MediaStream"],
+    "foundingDate": 1521072000
+  },
+  {
+    "name": "SecureVault Pro",
+    "description": "Enterprise-grade cybersecurity and data protection solution with AI-powered threat detection",
+    "industry": "Cybersecurity",
+    "specializations": [
+      "Threat Detection",
+      "Data Encryption",
+      "Compliance Management"
+    ],
+    "employeeCount": 280,
+    "headquarters": "Boston, MA, USA",
+    "locations": ["Boston, MA", "Toronto, Canada", "Tel Aviv, Israel"],
+    "customers": [
+      "National Bank Corp",
+      "HealthNet Systems",
+      "Government Agency X"
+    ],
+    "foundingDate": 1563753600
+  },
+  {
+    "name": "TeamFlow Solutions",
+    "description": "Collaborative project management and workflow automation platform for remote teams",
+    "industry": "Productivity Software",
+    "specializations": [
+      "Project Management",
+      "Team Collaboration",
+      "Workflow Automation"
+    ],
+    "employeeCount": 175,
+    "headquarters": "Seattle, WA, USA",
+    "locations": ["Seattle, WA", "Portland, OR", "Vancouver, Canada"],
+    "customers": [
+      "Design Studio Pro",
+      "Marketing Agency Plus",
+      "Consulting Group Ltd"
+    ],
+    "foundingDate": 1578614400
+  },
+  {
+    "name": "CustomerIQ Platform",
+    "description": "AI-driven customer relationship management and engagement platform",
+    "industry": "CRM Software",
+    "specializations": [
+      "Customer Analytics",
+      "Sales Automation",
+      "Marketing Automation"
+    ],
+    "employeeCount": 320,
+    "headquarters": "New York, NY, USA",
+    "locations": [
+      "New York, NY",
+      "Chicago, IL",
+      "Miami, FL",
+      "Dublin, Ireland"
+    ],
+    "customers": [
+      "Retail Giant Co",
+      "E-commerce Plus",
+      "Service Industries Inc"
+    ],
+    "foundingDate": 1509840000
+  },
+  {
+    "name": "PayStream Global",
+    "description": "Cloud-based payment processing and financial management platform for businesses",
+    "industry": "Fintech",
+    "specializations": [
+      "Payment Processing",
+      "Invoice Management",
+      "Financial Reporting"
+    ],
+    "employeeCount": 520,
+    "headquarters": "London, UK",
+    "locations": [
+      "London, UK",
+      "Berlin, Germany",
+      "Sydney, Australia",
+      "New York, NY"
+    ],
+    "customers": [
+      "Merchant Services Ltd",
+      "Global Traders Inc",
+      "Digital Commerce Co"
+    ],
+    "foundingDate": 1463702400
+  },
+  {
+    "name": "EduCloud Learning",
+    "description": "Comprehensive e-learning and course management system for educational institutions",
+    "industry": "EdTech",
+    "specializations": [
+      "Online Learning",
+      "Course Management",
+      "Student Analytics"
+    ],
+    "employeeCount": 190,
+    "headquarters": "Denver, CO, USA",
+    "locations": ["Denver, CO", "Phoenix, AZ", "Mexico City, Mexico"],
+    "customers": [
+      "State University",
+      "Community College Network",
+      "Corporate Training Inc"
+    ],
+    "foundingDate": 1567296000
+  },
+  {
+    "name": "HealthTrack Systems",
+    "description": "Electronic health records and patient management platform for healthcare providers",
+    "industry": "Healthcare IT",
+    "specializations": ["EHR Management", "Telemedicine", "Patient Engagement"],
+    "employeeCount": 380,
+    "headquarters": "Atlanta, GA, USA",
+    "locations": [
+      "Atlanta, GA",
+      "Nashville, TN",
+      "Dallas, TX",
+      "Montreal, Canada"
+    ],
+    "customers": [
+      "Regional Hospital Network",
+      "Medical Group Associates",
+      "Clinic Chain Plus"
+    ],
+    "foundingDate": 1518652800
+  },
+  {
+    "name": "MarketPulse AI",
+    "description": "Marketing intelligence and campaign optimization platform powered by machine learning",
+    "industry": "Marketing Technology",
+    "specializations": [
+      "Campaign Analytics",
+      "Audience Segmentation",
+      "ROI Optimization"
+    ],
+    "employeeCount": 145,
+    "headquarters": "Los Angeles, CA, USA",
+    "locations": ["Los Angeles, CA", "San Diego, CA", "Amsterdam, Netherlands"],
+    "customers": [
+      "Brand Leaders Inc",
+      "Digital Agency Network",
+      "Retail Marketing Co"
+    ],
+    "foundingDate": 1593561600
+  },
+  {
+    "name": "LegalEase Pro",
+    "description": "Cloud-based legal practice management and document automation software",
+    "industry": "Legal Tech",
+    "specializations": [
+      "Case Management",
+      "Document Automation",
+      "Time Tracking"
+    ],
+    "employeeCount": 110,
+    "headquarters": "Washington, DC, USA",
+    "locations": ["Washington, DC", "Philadelphia, PA", "London, UK"],
+    "customers": [
+      "Law Firm Associates",
+      "Corporate Legal Dept",
+      "Solo Practice Network"
+    ],
+    "foundingDate": 1555545600
+  },
+  {
+    "name": "SupplyChain 360",
+    "description": "End-to-end supply chain visibility and optimization platform",
+    "industry": "Supply Chain Management",
+    "specializations": [
+      "Inventory Management",
+      "Logistics Tracking",
+      "Demand Forecasting"
+    ],
+    "employeeCount": 290,
+    "headquarters": "Chicago, IL, USA",
+    "locations": [
+      "Chicago, IL",
+      "Memphis, TN",
+      "Shanghai, China",
+      "Hamburg, Germany"
+    ],
+    "customers": [
+      "Manufacturing Corp",
+      "Distribution Network Inc",
+      "Global Logistics Ltd"
+    ],
+    "foundingDate": 1502496000
+  },
+  {
+    "name": "HRConnect Cloud",
+    "description": "All-in-one human resources management and employee engagement platform",
+    "industry": "HR Technology",
+    "specializations": [
+      "Talent Management",
+      "Payroll Processing",
+      "Performance Reviews"
+    ],
+    "employeeCount": 225,
+    "headquarters": "Minneapolis, MN, USA",
+    "locations": ["Minneapolis, MN", "Detroit, MI", "Toronto, Canada"],
+    "customers": [
+      "Enterprise Corp",
+      "Growing Business Inc",
+      "Staffing Solutions Ltd"
+    ],
+    "foundingDate": 1540425600
+  },
+  {
+    "name": "DevOps Central",
+    "description": "Continuous integration and deployment platform for software development teams",
+    "industry": "Developer Tools",
+    "specializations": [
+      "CI/CD Pipelines",
+      "Container Management",
+      "Code Quality Analysis"
+    ],
+    "employeeCount": 165,
+    "headquarters": "Austin, TX, USA",
+    "locations": ["Austin, TX", "Raleigh, NC", "Bangalore, India"],
+    "customers": [
+      "Software House Inc",
+      "Tech Startup Network",
+      "Enterprise Dev Team"
+    ],
+    "foundingDate": 1575331200
+  },
+  {
+    "name": "SalesBoost Platform",
+    "description": "Sales enablement and revenue intelligence platform for B2B companies",
+    "industry": "Sales Technology",
+    "specializations": ["Sales Coaching", "Pipeline Analytics", "Lead Scoring"],
+    "employeeCount": 198,
+    "headquarters": "San Jose, CA, USA",
+    "locations": ["San Jose, CA", "Phoenix, AZ", "Dublin, Ireland"],
+    "customers": [
+      "Tech Sales Corp",
+      "B2B Solutions Inc",
+      "Enterprise Sales Team"
+    ],
+    "foundingDate": 1584835200
+  },
+  {
+    "name": "EventFlow Manager",
+    "description": "Virtual and hybrid event management platform with integrated networking features",
+    "industry": "Event Technology",
+    "specializations": [
+      "Virtual Events",
+      "Registration Management",
+      "Attendee Engagement"
+    ],
+    "employeeCount": 135,
+    "headquarters": "Miami, FL, USA",
+    "locations": ["Miami, FL", "Orlando, FL", "São Paulo, Brazil"],
+    "customers": [
+      "Conference Organizers Inc",
+      "Trade Show Network",
+      "Corporate Events Ltd"
+    ],
+    "foundingDate": 1597536000
+  },
+  {
+    "name": "CloudAccounting Plus",
+    "description": "Small business accounting and financial management software with automated bookkeeping",
+    "industry": "Accounting Software",
+    "specializations": [
+      "Bookkeeping Automation",
+      "Tax Preparation",
+      "Financial Reporting"
+    ],
+    "employeeCount": 210,
+    "headquarters": "Portland, OR, USA",
+    "locations": ["Portland, OR", "Sacramento, CA", "Vancouver, Canada"],
+    "customers": [
+      "Small Business Network",
+      "Freelancer Community",
+      "Startup Accelerator"
+    ],
+    "foundingDate": 1497052800
+  },
+  {
+    "name": "ContentHub Pro",
+    "description": "Content management and digital asset management platform for marketing teams",
+    "industry": "Content Management",
+    "specializations": [
+      "Digital Asset Management",
+      "Content Workflow",
+      "Brand Management"
+    ],
+    "employeeCount": 155,
+    "headquarters": "Nashville, TN, USA",
+    "locations": ["Nashville, TN", "Charlotte, NC", "Manchester, UK"],
+    "customers": [
+      "Media Company X",
+      "Publishing House Ltd",
+      "Creative Agency Network"
+    ],
+    "foundingDate": 1551398400
+  },
+  {
+    "name": "IoT Connect Solutions",
+    "description": "Internet of Things device management and data analytics platform",
+    "industry": "IoT Platform",
+    "specializations": [
+      "Device Management",
+      "Data Collection",
+      "Predictive Maintenance"
+    ],
+    "employeeCount": 245,
+    "headquarters": "San Diego, CA, USA",
+    "locations": [
+      "San Diego, CA",
+      "Detroit, MI",
+      "Tokyo, Japan",
+      "Munich, Germany"
+    ],
+    "customers": [
+      "Manufacturing IoT Inc",
+      "Smart City Initiative",
+      "Industrial Systems Corp"
+    ],
+    "foundingDate": 1530835200
+  },
+  {
+    "name": "ComplianceGuard",
+    "description": "Regulatory compliance management and risk assessment platform",
+    "industry": "GRC Software",
+    "specializations": [
+      "Compliance Tracking",
+      "Risk Assessment",
+      "Audit Management"
+    ],
+    "employeeCount": 178,
+    "headquarters": "Boston, MA, USA",
+    "locations": ["Boston, MA", "Washington, DC", "Frankfurt, Germany"],
+    "customers": [
+      "Financial Services Group",
+      "Healthcare Network",
+      "Energy Corp"
+    ],
+    "foundingDate": 1557619200
+  },
+  {
+    "name": "FeedbackLoop Analytics",
+    "description": "Customer feedback and survey platform with sentiment analysis capabilities",
+    "industry": "Customer Experience",
+    "specializations": [
+      "Survey Management",
+      "Sentiment Analysis",
+      "NPS Tracking"
+    ],
+    "employeeCount": 125,
+    "headquarters": "Boulder, CO, USA",
+    "locations": ["Boulder, CO", "Salt Lake City, UT", "Copenhagen, Denmark"],
+    "customers": [
+      "Retail Chain Plus",
+      "Service Company Network",
+      "Hospitality Group Ltd"
+    ],
+    "foundingDate": 1586304000
+  },
+  {
+    "name": "DataWarehouse Cloud",
+    "description": "Modern cloud data warehouse and ETL platform for data-driven organizations",
+    "industry": "Data Infrastructure",
+    "specializations": [
+      "Data Warehousing",
+      "ETL Processing",
+      "Data Governance"
+    ],
+    "employeeCount": 310,
+    "headquarters": "Redwood City, CA, USA",
+    "locations": [
+      "Redwood City, CA",
+      "Seattle, WA",
+      "Berlin, Germany",
+      "Sydney, Australia"
+    ],
+    "customers": [
+      "Analytics Company Inc",
+      "Data Science Team",
+      "Business Intelligence Corp"
+    ],
+    "foundingDate": 1505952000
+  },
+  {
+    "name": "TaskMaster Pro",
+    "description": "Advanced task automation and business process management platform",
+    "industry": "Workflow Automation",
+    "specializations": [
+      "Process Automation",
+      "Task Scheduling",
+      "Integration Hub"
+    ],
+    "employeeCount": 195,
+    "headquarters": "Phoenix, AZ, USA",
+    "locations": ["Phoenix, AZ", "Las Vegas, NV", "Barcelona, Spain"],
+    "customers": [
+      "Operations Team Plus",
+      "Automation Corp",
+      "Efficiency Solutions"
+    ],
+    "foundingDate": 1546300800
+  },
+  {
+    "name": "CloudComm Systems",
+    "description": "Unified communications platform with video conferencing and team messaging",
+    "industry": "Communication Software",
+    "specializations": [
+      "Video Conferencing",
+      "Team Messaging",
+      "VoIP Services"
+    ],
+    "employeeCount": 340,
+    "headquarters": "San Jose, CA, USA",
+    "locations": [
+      "San Jose, CA",
+      "Bellevue, WA",
+      "Tokyo, Japan",
+      "Paris, France"
+    ],
+    "customers": [
+      "Remote Work Inc",
+      "Global Teams Ltd",
+      "Digital Workplace Co"
+    ],
+    "foundingDate": 1483228800
+  },
+  {
+    "name": "InventoryIQ",
+    "description": "Smart inventory management and demand forecasting solution for retailers",
+    "industry": "Retail Technology",
+    "specializations": [
+      "Inventory Optimization",
+      "Demand Forecasting",
+      "Multi-channel Management"
+    ],
+    "employeeCount": 160,
+    "headquarters": "Columbus, OH, USA",
+    "locations": ["Columbus, OH", "Indianapolis, IN", "Montreal, Canada"],
+    "customers": [
+      "Retail Chain Network",
+      "E-commerce Giant",
+      "Distribution Hub Inc"
+    ],
+    "foundingDate": 1525132800
+  },
+  {
+    "name": "BudgetWise Cloud",
+    "description": "Corporate budgeting and financial planning software for mid-market companies",
+    "industry": "Financial Planning",
+    "specializations": [
+      "Budget Management",
+      "Financial Forecasting",
+      "Expense Tracking"
+    ],
+    "employeeCount": 145,
+    "headquarters": "Charlotte, NC, USA",
+    "locations": ["Charlotte, NC", "Atlanta, GA", "Toronto, Canada"],
+    "customers": [
+      "Mid-Market Corp",
+      "Financial Planning Inc",
+      "Budget Solutions Ltd"
+    ],
+    "foundingDate": 1541116800
+  },
+  {
+    "name": "QualityCheck AI",
+    "description": "AI-powered quality assurance and testing platform for software development",
+    "industry": "Quality Assurance",
+    "specializations": [
+      "Automated Testing",
+      "Bug Detection",
+      "Performance Testing"
+    ],
+    "employeeCount": 188,
+    "headquarters": "Raleigh, NC, USA",
+    "locations": ["Raleigh, NC", "Austin, TX", "Pune, India"],
+    "customers": [
+      "Software Dev Corp",
+      "QA Teams Network",
+      "Testing Solutions Inc"
+    ],
+    "foundingDate": 1559433600
+  },
+  {
+    "name": "PropertyPro Manager",
+    "description": "Property management software for real estate professionals and landlords",
+    "industry": "Real Estate Tech",
+    "specializations": [
+      "Tenant Management",
+      "Maintenance Tracking",
+      "Rent Collection"
+    ],
+    "employeeCount": 125,
+    "headquarters": "Tampa, FL, USA",
+    "locations": ["Tampa, FL", "Jacksonville, FL", "Mexico City, Mexico"],
+    "customers": [
+      "Property Management Corp",
+      "Real Estate Network",
+      "Landlord Association"
+    ],
+    "foundingDate": 1572566400
+  },
+  {
+    "name": "FleetTrack Solutions",
+    "description": "Fleet management and vehicle tracking platform for logistics companies",
+    "industry": "Transportation Tech",
+    "specializations": [
+      "GPS Tracking",
+      "Route Optimization",
+      "Fuel Management"
+    ],
+    "employeeCount": 205,
+    "headquarters": "Kansas City, MO, USA",
+    "locations": ["Kansas City, MO", "St. Louis, MO", "Amsterdam, Netherlands"],
+    "customers": [
+      "Logistics Fleet Inc",
+      "Delivery Services Corp",
+      "Transport Network Ltd"
+    ],
+    "foundingDate": 1514764800
+  },
+  {
+    "name": "BookingPro Platform",
+    "description": "Online booking and appointment scheduling system for service businesses",
+    "industry": "Scheduling Software",
+    "specializations": [
+      "Appointment Booking",
+      "Calendar Management",
+      "Customer Reminders"
+    ],
+    "employeeCount": 115,
+    "headquarters": "San Antonio, TX, USA",
+    "locations": ["San Antonio, TX", "Houston, TX", "Lima, Peru"],
+    "customers": [
+      "Service Business Network",
+      "Healthcare Clinics Inc",
+      "Beauty Salon Chain"
+    ],
+    "foundingDate": 1536278400
+  },
+  {
+    "name": "ExpenseFlow Manager",
+    "description": "Expense management and reimbursement platform for corporate travel",
+    "industry": "Expense Management",
+    "specializations": [
+      "Expense Reporting",
+      "Receipt Scanning",
+      "Policy Compliance"
+    ],
+    "employeeCount": 170,
+    "headquarters": "Minneapolis, MN, USA",
+    "locations": ["Minneapolis, MN", "Milwaukee, WI", "Copenhagen, Denmark"],
+    "customers": [
+      "Corporate Travel Inc",
+      "Business Services Ltd",
+      "Expense Solutions Corp"
+    ],
+    "foundingDate": 1520380800
+  },
+  {
+    "name": "DocumentAI Pro",
+    "description": "Intelligent document processing and data extraction platform",
+    "industry": "Document Management",
+    "specializations": [
+      "OCR Technology",
+      "Data Extraction",
+      "Document Classification"
+    ],
+    "employeeCount": 195,
+    "headquarters": "Pittsburgh, PA, USA",
+    "locations": ["Pittsburgh, PA", "Cleveland, OH", "Warsaw, Poland"],
+    "customers": [
+      "Insurance Corp",
+      "Legal Services Network",
+      "Government Agency Y"
+    ],
+    "foundingDate": 1549929600
+  },
+  {
+    "name": "NetworkShield Pro",
+    "description": "Network security and monitoring solution for enterprise IT departments",
+    "industry": "Network Security",
+    "specializations": [
+      "Network Monitoring",
+      "Intrusion Detection",
+      "Security Analytics"
+    ],
+    "employeeCount": 265,
+    "headquarters": "Salt Lake City, UT, USA",
+    "locations": ["Salt Lake City, UT", "Denver, CO", "Tel Aviv, Israel"],
+    "customers": [
+      "Enterprise IT Corp",
+      "Managed Services Provider",
+      "Tech Infrastructure Inc"
+    ],
+    "foundingDate": 1488326400
+  },
+  {
+    "name": "SocialMedia Hub",
+    "description": "Social media management and analytics platform for brands and agencies",
+    "industry": "Social Media Tools",
+    "specializations": [
+      "Social Publishing",
+      "Analytics Dashboard",
+      "Engagement Tracking"
+    ],
+    "employeeCount": 148,
+    "headquarters": "Portland, ME, USA",
+    "locations": ["Portland, ME", "Burlington, VT", "London, UK"],
+    "customers": [
+      "Digital Agency Plus",
+      "Brand Management Inc",
+      "Social Media Experts"
+    ],
+    "foundingDate": 1543622400
+  },
+  {
+    "name": "ContractSmart AI",
+    "description": "Contract lifecycle management platform with AI-powered analysis",
+    "industry": "Contract Management",
+    "specializations": [
+      "Contract Analysis",
+      "Lifecycle Management",
+      "Risk Assessment"
+    ],
+    "employeeCount": 132,
+    "headquarters": "Baltimore, MD, USA",
+    "locations": ["Baltimore, MD", "Richmond, VA", "Brussels, Belgium"],
+    "customers": [
+      "Legal Department Network",
+      "Procurement Teams Inc",
+      "Contract Services Ltd"
+    ],
+    "foundingDate": 1562544000
+  },
+  {
+    "name": "FieldService Pro",
+    "description": "Field service management software for mobile workforce optimization",
+    "industry": "Field Service",
+    "specializations": [
+      "Work Order Management",
+      "Mobile Dispatch",
+      "Service Analytics"
+    ],
+    "employeeCount": 178,
+    "headquarters": "Las Vegas, NV, USA",
+    "locations": ["Las Vegas, NV", "Reno, NV", "Calgary, Canada"],
+    "customers": [
+      "Field Service Corp",
+      "Maintenance Network",
+      "Service Technicians Inc"
+    ],
+    "foundingDate": 1527811200
+  },
+  {
+    "name": "EmailCampaign Master",
+    "description": "Email marketing automation platform with advanced personalization",
+    "industry": "Email Marketing",
+    "specializations": [
+      "Campaign Automation",
+      "A/B Testing",
+      "Personalization Engine"
+    ],
+    "employeeCount": 122,
+    "headquarters": "Providence, RI, USA",
+    "locations": ["Providence, RI", "Hartford, CT", "Dublin, Ireland"],
+    "customers": [
+      "Marketing Teams Network",
+      "E-commerce Retailers",
+      "Newsletter Publishers"
+    ],
+    "foundingDate": 1554940800
+  },
+  {
+    "name": "VendorManage Plus",
+    "description": "Vendor management and procurement platform for enterprise purchasing",
+    "industry": "Procurement Software",
+    "specializations": [
+      "Vendor Onboarding",
+      "Purchase Orders",
+      "Spend Analytics"
+    ],
+    "employeeCount": 156,
+    "headquarters": "Cincinnati, OH, USA",
+    "locations": ["Cincinnati, OH", "Louisville, KY", "Munich, Germany"],
+    "customers": [
+      "Procurement Dept Inc",
+      "Supply Chain Network",
+      "Enterprise Purchasing"
+    ],
+    "foundingDate": 1533859200
+  },
+  {
+    "name": "TrainingCloud LMS",
+    "description": "Learning management system for corporate training and development",
+    "industry": "Corporate Training",
+    "specializations": [
+      "Course Creation",
+      "Progress Tracking",
+      "Certification Management"
+    ],
+    "employeeCount": 142,
+    "headquarters": "Orlando, FL, USA",
+    "locations": ["Orlando, FL", "Tampa, FL", "São Paulo, Brazil"],
+    "customers": [
+      "Corporate Training Inc",
+      "HR Development Network",
+      "Learning Solutions Ltd"
+    ],
+    "foundingDate": 1568505600
+  },
+  {
+    "name": "APIGateway Pro",
+    "description": "API management and integration platform for digital transformation",
+    "industry": "API Management",
+    "specializations": ["API Gateway", "Integration Hub", "Developer Portal"],
+    "employeeCount": 198,
+    "headquarters": "San Francisco, CA, USA",
+    "locations": ["San Francisco, CA", "Seattle, WA", "Bangalore, India"],
+    "customers": [
+      "Tech Integration Corp",
+      "API Developers Network",
+      "Digital Transform Inc"
+    ],
+    "foundingDate": 1491004800
+  },
+  {
+    "name": "BackupVault Cloud",
+    "description": "Enterprise backup and disaster recovery solution for critical data",
+    "industry": "Data Protection",
+    "specializations": ["Cloud Backup", "Disaster Recovery", "Data Archiving"],
+    "employeeCount": 225,
+    "headquarters": "Phoenix, AZ, USA",
+    "locations": ["Phoenix, AZ", "Dallas, TX", "Sydney, Australia"],
+    "customers": [
+      "Data Protection Corp",
+      "IT Services Network",
+      "Backup Solutions Inc"
+    ],
+    "foundingDate": 1522540800
+  },
+  {
+    "name": "MobileApp Builder",
+    "description": "No-code mobile application development platform for businesses",
+    "industry": "App Development",
+    "specializations": [
+      "No-Code Platform",
+      "Mobile Apps",
+      "Cross-Platform Development"
+    ],
+    "employeeCount": 167,
+    "headquarters": "Boulder, CO, USA",
+    "locations": ["Boulder, CO", "Portland, OR", "Berlin, Germany"],
+    "customers": [
+      "App Development Network",
+      "Small Business Apps",
+      "Mobile Solutions Corp"
+    ],
+    "foundingDate": 1512086400
+  },
+  {
+    "name": "AssetTrack Pro",
+    "description": "Fixed asset management and tracking software for enterprises",
+    "industry": "Asset Management",
+    "specializations": [
+      "Asset Tracking",
+      "Depreciation Management",
+      "Maintenance Scheduling"
+    ],
+    "employeeCount": 134,
+    "headquarters": "Milwaukee, WI, USA",
+    "locations": ["Milwaukee, WI", "Madison, WI", "Toronto, Canada"],
+    "customers": [
+      "Facilities Management Inc",
+      "Enterprise Assets Corp",
+      "Property Services Ltd"
+    ],
+    "foundingDate": 1546992000
+  },
+  {
+    "name": "ChatSupport AI",
+    "description": "AI-powered customer support chatbot and live chat platform",
+    "industry": "Customer Support",
+    "specializations": ["AI Chatbots", "Live Chat", "Ticket Management"],
+    "employeeCount": 186,
+    "headquarters": "Boston, MA, USA",
+    "locations": ["Boston, MA", "New York, NY", "London, UK"],
+    "customers": [
+      "Support Teams Network",
+      "E-commerce Support Inc",
+      "Customer Service Corp"
+    ],
+    "foundingDate": 1565913600
+  },
+  {
+    "name": "FormBuilder Pro",
+    "description": "Online form builder and data collection platform for businesses",
+    "industry": "Form Software",
+    "specializations": ["Form Building", "Data Collection", "Survey Creation"],
+    "employeeCount": 112,
+    "headquarters": "Nashville, TN, USA",
+    "locations": ["Nashville, TN", "Memphis, TN", "Mexico City, Mexico"],
+    "customers": [
+      "Data Collection Network",
+      "Survey Research Inc",
+      "Form Solutions Ltd"
+    ],
+    "foundingDate": 1538697600
+  },
+  {
+    "name": "VideoStream Platform",
+    "description": "Enterprise video streaming and content delivery platform",
+    "industry": "Video Technology",
+    "specializations": [
+      "Video Streaming",
+      "Live Broadcasting",
+      "Content Management"
+    ],
+    "employeeCount": 254,
+    "headquarters": "Los Angeles, CA, USA",
+    "locations": [
+      "Los Angeles, CA",
+      "San Francisco, CA",
+      "Tokyo, Japan",
+      "London, UK"
+    ],
+    "customers": [
+      "Media Streaming Corp",
+      "Corporate Communications",
+      "Video Content Network"
+    ],
+    "foundingDate": 1506988800
+  },
+  {
+    "name": "BIAnalytics Cloud",
+    "description": "Business intelligence and data visualization platform for enterprises",
+    "industry": "Business Intelligence",
+    "specializations": [
+      "Data Visualization",
+      "Dashboard Creation",
+      "Predictive Analytics"
+    ],
+    "employeeCount": 296,
+    "headquarters": "Chicago, IL, USA",
+    "locations": ["Chicago, IL", "Detroit, MI", "Paris, France", "Singapore"],
+    "customers": [
+      "Analytics Teams Inc",
+      "Business Intelligence Corp",
+      "Data Insights Network"
+    ],
+    "foundingDate": 1494460800
+  },
+  {
+    "name": "TimeTracker Plus",
+    "description": "Time tracking and productivity monitoring software for remote teams",
+    "industry": "Time Management",
+    "specializations": [
+      "Time Tracking",
+      "Productivity Analytics",
+      "Billing Integration"
+    ],
+    "employeeCount": 128,
+    "headquarters": "Portland, OR, USA",
+    "locations": ["Portland, OR", "Sacramento, CA", "Vancouver, Canada"],
+    "customers": [
+      "Remote Teams Network",
+      "Freelancer Platform",
+      "Consulting Services Inc"
+    ],
+    "foundingDate": 1530230400
+  },
+  {
+    "name": "SubscriptionFlow",
+    "description": "Subscription billing and revenue management platform for SaaS companies",
+    "industry": "Billing Software",
+    "specializations": [
+      "Subscription Management",
+      "Revenue Recognition",
+      "Payment Processing"
+    ],
+    "employeeCount": 203,
+    "headquarters": "Austin, TX, USA",
+    "locations": ["Austin, TX", "Denver, CO", "Dublin, Ireland"],
+    "customers": [
+      "SaaS Companies Network",
+      "Subscription Services Inc",
+      "Recurring Revenue Corp"
+    ],
+    "foundingDate": 1517443200
+  },
+  {
+    "name": "KnowledgeBase AI",
+    "description": "AI-powered knowledge management and documentation platform",
+    "industry": "Knowledge Management",
+    "specializations": [
+      "Documentation Management",
+      "Search AI",
+      "Collaboration Tools"
+    ],
+    "employeeCount": 159,
+    "headquarters": "Seattle, WA, USA",
+    "locations": ["Seattle, WA", "Portland, OR", "Amsterdam, Netherlands"],
+    "customers": [
+      "Tech Documentation Inc",
+      "Knowledge Workers Network",
+      "Support Teams Corp"
+    ],
+    "foundingDate": 1551744000
+  },
+  {
+    "name": "ReviewManager Pro",
+    "description": "Online reputation management platform for businesses",
+    "industry": "Reputation Management",
+    "specializations": [
+      "Review Monitoring",
+      "Response Management",
+      "Sentiment Analysis"
+    ],
+    "employeeCount": 141,
+    "headquarters": "San Diego, CA, USA",
+    "locations": ["San Diego, CA", "Phoenix, AZ", "Toronto, Canada"],
+    "customers": [
+      "Restaurant Chains Inc",
+      "Hotel Network",
+      "Service Business Corp"
+    ],
+    "foundingDate": 1560124800
+  },
+  {
+    "name": "DigitalSign Pro",
+    "description": "Electronic signature and document workflow platform",
+    "industry": "E-Signature",
+    "specializations": [
+      "Electronic Signatures",
+      "Document Workflows",
+      "Compliance Tracking"
+    ],
+    "employeeCount": 172,
+    "headquarters": "Denver, CO, USA",
+    "locations": ["Denver, CO", "Salt Lake City, UT", "Berlin, Germany"],
+    "customers": [
+      "Legal Documents Inc",
+      "Real Estate Network",
+      "Contract Management Corp"
+    ],
+    "foundingDate": 1528416000
+  },
+  {
+    "name": "WealthTech Solutions",
+    "description": "Wealth management platform for financial advisors and RIAs",
+    "industry": "WealthTech",
+    "specializations": [
+      "Portfolio Management",
+      "Financial Planning",
+      "Client Reporting"
+    ],
+    "employeeCount": 218,
+    "headquarters": "Charlotte, NC, USA",
+    "locations": ["Charlotte, NC", "Atlanta, GA", "London, UK"],
+    "customers": [
+      "Financial Advisors Network",
+      "Wealth Management Inc",
+      "Investment Services Corp"
+    ],
+    "foundingDate": 1504224000
+  },
+  {
+    "name": "IdentityGuard Plus",
+    "description": "Identity and access management platform for enterprise security",
+    "industry": "Identity Management",
+    "specializations": [
+      "Single Sign-On",
+      "Multi-Factor Auth",
+      "Access Control"
+    ],
+    "employeeCount": 237,
+    "headquarters": "Reston, VA, USA",
+    "locations": ["Reston, VA", "Austin, TX", "Frankfurt, Germany"],
+    "customers": [
+      "Enterprise Security Inc",
+      "IT Departments Network",
+      "Identity Solutions Corp"
+    ],
+    "foundingDate": 1499040000
+  },
+  {
+    "name": "RecruitmentHub AI",
+    "description": "AI-powered recruitment and applicant tracking system",
+    "industry": "HR Tech",
+    "specializations": [
+      "Applicant Tracking",
+      "AI Screening",
+      "Interview Scheduling"
+    ],
+    "employeeCount": 183,
+    "headquarters": "San Francisco, CA, USA",
+    "locations": ["San Francisco, CA", "New York, NY", "London, UK"],
+    "customers": [
+      "Talent Acquisition Inc",
+      "Recruiting Agencies Network",
+      "HR Teams Corp"
+    ],
+    "foundingDate": 1544832000
+  },
+  {
+    "name": "InsureTech Platform",
+    "description": "Digital insurance platform for policy management and claims processing",
+    "industry": "InsurTech",
+    "specializations": [
+      "Policy Management",
+      "Claims Processing",
+      "Risk Assessment"
+    ],
+    "employeeCount": 267,
+    "headquarters": "Hartford, CT, USA",
+    "locations": [
+      "Hartford, CT",
+      "Boston, MA",
+      "Chicago, IL",
+      "Munich, Germany"
+    ],
+    "customers": [
+      "Insurance Carriers Network",
+      "Insurance Brokers Inc",
+      "Claims Services Corp"
+    ],
+    "foundingDate": 1485907200
+  },
+  {
+    "name": "TaxCompliance Cloud",
+    "description": "Tax compliance and reporting software for multi-state businesses",
+    "industry": "Tax Software",
+    "specializations": [
+      "Tax Compliance",
+      "Multi-State Filing",
+      "Sales Tax Automation"
+    ],
+    "employeeCount": 194,
+    "headquarters": "Dallas, TX, USA",
+    "locations": ["Dallas, TX", "Houston, TX", "Toronto, Canada"],
+    "customers": [
+      "Tax Departments Network",
+      "Accounting Firms Inc",
+      "Compliance Teams Corp"
+    ],
+    "foundingDate": 1523318400
+  },
+  {
+    "name": "FraudDetect AI",
+    "description": "AI-powered fraud detection and prevention platform for financial services",
+    "industry": "Fraud Prevention",
+    "specializations": [
+      "Fraud Detection",
+      "Risk Scoring",
+      "Transaction Monitoring"
+    ],
+    "employeeCount": 221,
+    "headquarters": "New York, NY, USA",
+    "locations": [
+      "New York, NY",
+      "London, UK",
+      "Singapore",
+      "Tel Aviv, Israel"
+    ],
+    "customers": [
+      "Financial Institutions Inc",
+      "Payment Processors Network",
+      "E-commerce Security Corp"
+    ],
+    "foundingDate": 1510531200
+  },
+  {
+    "name": "ConstructionOS",
+    "description": "Construction project management and collaboration platform",
+    "industry": "Construction Tech",
+    "specializations": [
+      "Project Planning",
+      "Resource Management",
+      "Site Collaboration"
+    ],
+    "employeeCount": 189,
+    "headquarters": "Denver, CO, USA",
+    "locations": ["Denver, CO", "Phoenix, AZ", "Toronto, Canada"],
+    "customers": [
+      "Construction Companies Inc",
+      "Project Managers Network",
+      "Building Services Corp"
+    ],
+    "foundingDate": 1541721600
+  },
+  {
+    "name": "LoyaltyRewards Pro",
+    "description": "Customer loyalty and rewards program management platform",
+    "industry": "Loyalty Software",
+    "specializations": [
+      "Loyalty Programs",
+      "Rewards Management",
+      "Customer Engagement"
+    ],
+    "employeeCount": 152,
+    "headquarters": "Chicago, IL, USA",
+    "locations": ["Chicago, IL", "Dallas, TX", "Mexico City, Mexico"],
+    "customers": [
+      "Retail Loyalty Network",
+      "Restaurant Chains Inc",
+      "E-commerce Rewards Corp"
+    ],
+    "foundingDate": 1534464000
+  },
+  {
+    "name": "MedicalBilling Pro",
+    "description": "Medical billing and practice management software for healthcare providers",
+    "industry": "Healthcare Software",
+    "specializations": [
+      "Medical Billing",
+      "Claims Management",
+      "Revenue Cycle"
+    ],
+    "employeeCount": 176,
+    "headquarters": "Tampa, FL, USA",
+    "locations": ["Tampa, FL", "Orlando, FL", "Atlanta, GA"],
+    "customers": [
+      "Medical Practices Network",
+      "Healthcare Billing Inc",
+      "Practice Management Corp"
+    ],
+    "foundingDate": 1525737600
+  },
+  {
+    "name": "WebinarPlatform Plus",
+    "description": "Webinar and virtual event hosting platform with engagement tools",
+    "industry": "Virtual Events",
+    "specializations": [
+      "Webinar Hosting",
+      "Audience Engagement",
+      "Event Analytics"
+    ],
+    "employeeCount": 138,
+    "headquarters": "San Jose, CA, USA",
+    "locations": ["San Jose, CA", "Los Angeles, CA", "London, UK"],
+    "customers": [
+      "Marketing Webinars Inc",
+      "Training Events Network",
+      "Virtual Conference Corp"
+    ],
+    "foundingDate": 1570320000
+  },
+  {
+    "name": "WarehouseWMS Pro",
+    "description": "Warehouse management system for distribution and fulfillment centers",
+    "industry": "Logistics Software",
+    "specializations": [
+      "Inventory Control",
+      "Order Fulfillment",
+      "Warehouse Optimization"
+    ],
+    "employeeCount": 212,
+    "headquarters": "Memphis, TN, USA",
+    "locations": ["Memphis, TN", "Louisville, KY", "Amsterdam, Netherlands"],
+    "customers": [
+      "Distribution Centers Inc",
+      "Fulfillment Network",
+      "Warehouse Operations Corp"
+    ],
+    "foundingDate": 1496275200
+  },
+  {
+    "name": "PricingOptimizer AI",
+    "description": "Dynamic pricing optimization platform for e-commerce and retail",
+    "industry": "Pricing Software",
+    "specializations": [
+      "Price Optimization",
+      "Competitive Analysis",
+      "Revenue Management"
+    ],
+    "employeeCount": 164,
+    "headquarters": "Seattle, WA, USA",
+    "locations": ["Seattle, WA", "San Francisco, CA", "Berlin, Germany"],
+    "customers": [
+      "E-commerce Retailers Inc",
+      "Pricing Teams Network",
+      "Revenue Optimization Corp"
+    ],
+    "foundingDate": 1548979200
+  },
+  {
+    "name": "DataPrivacy Shield",
+    "description": "Data privacy and GDPR compliance management platform",
+    "industry": "Privacy Tech",
+    "specializations": [
+      "Privacy Compliance",
+      "Data Mapping",
+      "Consent Management"
+    ],
+    "employeeCount": 147,
+    "headquarters": "Washington, DC, USA",
+    "locations": ["Washington, DC", "Brussels, Belgium", "London, UK"],
+    "customers": [
+      "Privacy Officers Network",
+      "Compliance Teams Inc",
+      "Data Protection Corp"
+    ],
+    "foundingDate": 1558828800
+  },
+  {
+    "name": "NetworkMonitor Pro",
+    "description": "Infrastructure monitoring and alerting platform for IT operations",
+    "industry": "IT Operations",
+    "specializations": [
+      "Infrastructure Monitoring",
+      "Alert Management",
+      "Performance Analytics"
+    ],
+    "employeeCount": 201,
+    "headquarters": "Austin, TX, USA",
+    "locations": ["Austin, TX", "Denver, CO", "Bangalore, India"],
+    "customers": [
+      "IT Operations Inc",
+      "DevOps Teams Network",
+      "Infrastructure Management Corp"
+    ],
+    "foundingDate": 1515369600
+  },
+  {
+    "name": "CustomerSuccess AI",
+    "description": "Customer success platform with predictive analytics and health scoring",
+    "industry": "Customer Success",
+    "specializations": [
+      "Health Scoring",
+      "Churn Prediction",
+      "Success Planning"
+    ],
+    "employeeCount": 173,
+    "headquarters": "San Francisco, CA, USA",
+    "locations": ["San Francisco, CA", "Boston, MA", "Dublin, Ireland"],
+    "customers": [
+      "SaaS Success Teams Inc",
+      "Customer Success Network",
+      "Retention Services Corp"
+    ],
+    "foundingDate": 1539648000
+  },
+  {
+    "name": "TranslationHub Pro",
+    "description": "Translation management and localization platform for global businesses",
+    "industry": "Localization",
+    "specializations": [
+      "Translation Management",
+      "Website Localization",
+      "Content Translation"
+    ],
+    "employeeCount": 156,
+    "headquarters": "New York, NY, USA",
+    "locations": ["New York, NY", "Berlin, Germany", "Tokyo, Japan"],
+    "customers": [
+      "Global Content Inc",
+      "Localization Teams Network",
+      "Translation Services Corp"
+    ],
+    "foundingDate": 1531440000
+  },
+  {
+    "name": "ParkingTech Solutions",
+    "description": "Smart parking management and payment platform for cities and operators",
+    "industry": "Smart City Tech",
+    "specializations": [
+      "Parking Management",
+      "Payment Processing",
+      "Space Analytics"
+    ],
+    "employeeCount": 142,
+    "headquarters": "Los Angeles, CA, USA",
+    "locations": ["Los Angeles, CA", "San Francisco, CA", "Barcelona, Spain"],
+    "customers": [
+      "City Parking Network",
+      "Parking Operators Inc",
+      "Smart City Solutions Corp"
+    ],
+    "foundingDate": 1563148800
+  },
+  {
+    "name": "RentalManage Pro",
+    "description": "Equipment rental management software for rental businesses",
+    "industry": "Rental Software",
+    "specializations": [
+      "Rental Management",
+      "Equipment Tracking",
+      "Contract Management"
+    ],
+    "employeeCount": 131,
+    "headquarters": "Phoenix, AZ, USA",
+    "locations": ["Phoenix, AZ", "Las Vegas, NV", "Calgary, Canada"],
+    "customers": [
+      "Equipment Rental Inc",
+      "Rental Services Network",
+      "Tool Rental Corp"
+    ],
+    "foundingDate": 1556668800
+  },
+  {
+    "name": "FoodSafety Cloud",
+    "description": "Food safety and compliance management platform for restaurants",
+    "industry": "Food Tech",
+    "specializations": [
+      "HACCP Compliance",
+      "Temperature Monitoring",
+      "Audit Management"
+    ],
+    "employeeCount": 119,
+    "headquarters": "Chicago, IL, USA",
+    "locations": ["Chicago, IL", "Milwaukee, WI", "Toronto, Canada"],
+    "customers": [
+      "Restaurant Chains Inc",
+      "Food Service Network",
+      "Hospitality Compliance Corp"
+    ],
+    "foundingDate": 1574121600
+  },
+  {
+    "name": "MembershipHub Pro",
+    "description": "Membership management platform for associations and clubs",
+    "industry": "Association Software",
+    "specializations": [
+      "Member Management",
+      "Event Registration",
+      "Dues Processing"
+    ],
+    "employeeCount": 147,
+    "headquarters": "Washington, DC, USA",
+    "locations": ["Washington, DC", "Chicago, IL", "London, UK"],
+    "customers": [
+      "Professional Associations Inc",
+      "Member Organizations Network",
+      "Club Management Corp"
+    ],
+    "foundingDate": 1542240000
+  },
+  {
+    "name": "CRMIntegrator Plus",
+    "description": "CRM integration and data synchronization platform",
+    "industry": "Integration Platform",
+    "specializations": ["CRM Integration", "Data Sync", "Workflow Automation"],
+    "employeeCount": 168,
+    "headquarters": "San Francisco, CA, USA",
+    "locations": ["San Francisco, CA", "Austin, TX", "Bangalore, India"],
+    "customers": [
+      "Sales Operations Inc",
+      "CRM Teams Network",
+      "Integration Services Corp"
+    ],
+    "foundingDate": 1520985600
+  },
+  {
+    "name": "VolunteerManage Pro",
+    "description": "Volunteer management and scheduling platform for nonprofits",
+    "industry": "Nonprofit Tech",
+    "specializations": [
+      "Volunteer Scheduling",
+      "Hours Tracking",
+      "Impact Reporting"
+    ],
+    "employeeCount": 103,
+    "headquarters": "Minneapolis, MN, USA",
+    "locations": ["Minneapolis, MN", "Chicago, IL", "Vancouver, Canada"],
+    "customers": [
+      "Nonprofit Network Inc",
+      "Volunteer Organizations",
+      "Community Services Corp"
+    ],
+    "foundingDate": 1567900800
+  },
+  {
+    "name": "SecurityAudit AI",
+    "description": "Automated security auditing and vulnerability assessment platform",
+    "industry": "Security Software",
+    "specializations": [
+      "Security Auditing",
+      "Vulnerability Scanning",
+      "Compliance Checking"
+    ],
+    "employeeCount": 192,
+    "headquarters": "Boston, MA, USA",
+    "locations": ["Boston, MA", "Washington, DC", "Tel Aviv, Israel"],
+    "customers": [
+      "Security Teams Network",
+      "IT Audit Inc",
+      "Compliance Services Corp"
+    ],
+    "foundingDate": 1507593600
+  },
+  {
+    "name": "EnergyManage Cloud",
+    "description": "Energy management and sustainability platform for commercial buildings",
+    "industry": "Energy Tech",
+    "specializations": [
+      "Energy Monitoring",
+      "Sustainability Reporting",
+      "Cost Optimization"
+    ],
+    "employeeCount": 184,
+    "headquarters": "San Diego, CA, USA",
+    "locations": ["San Diego, CA", "Phoenix, AZ", "Copenhagen, Denmark"],
+    "customers": [
+      "Building Management Inc",
+      "Energy Services Network",
+      "Sustainability Teams Corp"
+    ],
+    "foundingDate": 1536883200
+  },
+  {
+    "name": "PatientPortal Plus",
+    "description": "Patient engagement portal for healthcare providers",
+    "industry": "Healthcare IT",
+    "specializations": [
+      "Patient Portal",
+      "Appointment Booking",
+      "Health Records Access"
+    ],
+    "employeeCount": 158,
+    "headquarters": "Nashville, TN, USA",
+    "locations": ["Nashville, TN", "Louisville, KY", "Montreal, Canada"],
+    "customers": [
+      "Healthcare Systems Inc",
+      "Medical Clinics Network",
+      "Patient Care Corp"
+    ],
+    "foundingDate": 1545264000
+  },
+  {
+    "name": "DataIntegration Pro",
+    "description": "Enterprise data integration and ETL platform",
+    "industry": "Data Management",
+    "specializations": ["Data Integration", "ETL Processing", "Data Quality"],
+    "employeeCount": 234,
+    "headquarters": "San Jose, CA, USA",
+    "locations": [
+      "San Jose, CA",
+      "Seattle, WA",
+      "Frankfurt, Germany",
+      "Singapore"
+    ],
+    "customers": [
+      "Data Teams Network",
+      "Enterprise IT Inc",
+      "Analytics Services Corp"
+    ],
+    "foundingDate": 1489536000
+  },
+  {
+    "name": "RemoteDesktop Cloud",
+    "description": "Cloud-based remote desktop and application virtualization platform",
+    "industry": "Remote Access",
+    "specializations": [
+      "Desktop Virtualization",
+      "Application Streaming",
+      "Remote Support"
+    ],
+    "employeeCount": 197,
+    "headquarters": "Redmond, WA, USA",
+    "locations": ["Redmond, WA", "San Francisco, CA", "London, UK"],
+    "customers": [
+      "Remote Work Solutions Inc",
+      "IT Support Network",
+      "Virtual Desktop Corp"
+    ],
+    "foundingDate": 1553385600
+  },
+  {
+    "name": "GrantManage Pro",
+    "description": "Grant management and tracking platform for nonprofits and foundations",
+    "industry": "Grant Management",
+    "specializations": [
+      "Grant Tracking",
+      "Application Management",
+      "Reporting Tools"
+    ],
+    "employeeCount": 126,
+    "headquarters": "Philadelphia, PA, USA",
+    "locations": ["Philadelphia, PA", "Washington, DC", "Toronto, Canada"],
+    "customers": [
+      "Foundation Network Inc",
+      "Nonprofit Grants",
+      "Grant Management Corp"
+    ],
+    "foundingDate": 1571529600
+  },
+  {
+    "name": "CloudBackup Express",
+    "description": "Automated cloud backup solution for small and medium businesses",
+    "industry": "Backup Software",
+    "specializations": ["Automated Backup", "Cloud Storage", "Quick Recovery"],
+    "employeeCount": 143,
+    "headquarters": "Tampa, FL, USA",
+    "locations": ["Tampa, FL", "Miami, FL", "São Paulo, Brazil"],
+    "customers": ["SMB Network Inc", "IT Services", "Backup Solutions Corp"],
+    "foundingDate": 1529625600
+  },
+  {
+    "name": "ShiftScheduler Pro",
+    "description": "Employee shift scheduling and workforce management platform",
+    "industry": "Workforce Management",
+    "specializations": [
+      "Shift Scheduling",
+      "Time Tracking",
+      "Labor Compliance"
+    ],
+    "employeeCount": 161,
+    "headquarters": "Columbus, OH, USA",
+    "locations": ["Columbus, OH", "Cincinnati, OH", "Toronto, Canada"],
+    "customers": [
+      "Retail Workforce Inc",
+      "Restaurant Staff Network",
+      "Healthcare Scheduling Corp"
+    ],
+    "foundingDate": 1513296000
+  },
+  {
+    "name": "TenantScreen Plus",
+    "description": "Tenant screening and background check platform for landlords",
+    "industry": "PropTech",
+    "specializations": [
+      "Background Checks",
+      "Credit Screening",
+      "Rental Applications"
+    ],
+    "employeeCount": 108,
+    "headquarters": "Dallas, TX, USA",
+    "locations": ["Dallas, TX", "Austin, TX", "Mexico City, Mexico"],
+    "customers": [
+      "Property Managers Inc",
+      "Landlord Network",
+      "Rental Services Corp"
+    ],
+    "foundingDate": 1561334400
+  },
+  {
+    "name": "FundAccounting Cloud",
+    "description": "Fund accounting software for nonprofits and government agencies",
+    "industry": "Nonprofit Software",
+    "specializations": [
+      "Fund Accounting",
+      "Grant Tracking",
+      "Financial Reporting"
+    ],
+    "employeeCount": 174,
+    "headquarters": "Sacramento, CA, USA",
+    "locations": ["Sacramento, CA", "Los Angeles, CA", "Vancouver, Canada"],
+    "customers": [
+      "Nonprofit Finance Inc",
+      "Government Agencies",
+      "Fund Management Corp"
+    ],
+    "foundingDate": 1547769600
+  },
+  {
+    "name": "QRCode Manager",
+    "description": "QR code generation and management platform for marketing campaigns",
+    "industry": "Marketing Tools",
+    "specializations": [
+      "QR Code Generation",
+      "Campaign Tracking",
+      "Analytics Dashboard"
+    ],
+    "employeeCount": 96,
+    "headquarters": "Atlanta, GA, USA",
+    "locations": ["Atlanta, GA", "Charlotte, NC", "London, UK"],
+    "customers": [
+      "Marketing Campaigns Inc",
+      "Retail Marketing Network",
+      "Event Management Corp"
+    ],
+    "foundingDate": 1576713600
+  },
+  {
+    "name": "PetCare Platform",
+    "description": "Pet care management software for veterinary clinics and pet services",
+    "industry": "Pet Tech",
+    "specializations": [
+      "Appointment Scheduling",
+      "Medical Records",
+      "Pet Parent Portal"
+    ],
+    "employeeCount": 118,
+    "headquarters": "Denver, CO, USA",
+    "locations": ["Denver, CO", "Portland, OR", "Calgary, Canada"],
+    "customers": [
+      "Veterinary Clinics Inc",
+      "Pet Services Network",
+      "Animal Care Corp"
+    ],
+    "foundingDate": 1564358400
+  },
+  {
+    "name": "AlertNotify Pro",
+    "description": "Mass notification and emergency alert system for organizations",
+    "industry": "Emergency Management",
+    "specializations": [
+      "Mass Notifications",
+      "Emergency Alerts",
+      "Multi-Channel Messaging"
+    ],
+    "employeeCount": 137,
+    "headquarters": "Houston, TX, USA",
+    "locations": ["Houston, TX", "Dallas, TX", "Mexico City, Mexico"],
+    "customers": [
+      "Emergency Services Inc",
+      "Corporate Safety Network",
+      "Government Alert Corp"
+    ],
+    "foundingDate": 1526601600
+  },
+  {
+    "name": "CloudForms Builder",
+    "description": "Enterprise form automation and workflow platform",
+    "industry": "Process Automation",
+    "specializations": [
+      "Form Automation",
+      "Workflow Design",
+      "Process Optimization"
+    ],
+    "employeeCount": 154,
+    "headquarters": "Raleigh, NC, USA",
+    "locations": ["Raleigh, NC", "Richmond, VA", "Dublin, Ireland"],
+    "customers": [
+      "Process Teams Inc",
+      "Automation Network",
+      "Enterprise Forms Corp"
+    ],
+    "foundingDate": 1535673600
+  }
+]

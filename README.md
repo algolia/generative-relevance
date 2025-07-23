@@ -175,6 +175,25 @@ The CLI generates four types of AI configuration suggestions:
 - **Optimization insights** - See how different AIs would improve your setup
 - **Cost vs. quality** - Compare expensive vs. cost-effective models
 
+## 📁 Available Datasets
+
+This project includes three sample datasets for testing and demonstration:
+
+### 📰 Articles dataset (`datasets/articles/clean.json`)
+- **Size**: 100 news articles
+- **Attributes**: `title`, `authors`, `date`, `content`, `tags`, `viewCount`, `commentCount`
+- **Use case**: Content discovery, news search, article recommendation systems
+
+### 🛍️ Products dataset (`datasets/products/clean.json`)
+- **Size**: 100 products
+- **Attributes**: `name`, `description`, `price`, `brand`, `color`, `material`, `inventory`, `rating`, `categories`, `in_stock`
+- **Use case**: E-commerce search, product filtering, price comparison
+
+### 💼 Companies dataset (`datasets/companies/clean.json`) 
+- **Size**: 100 SaaS company profiles
+- **Attributes**: `name`, `description`, `industry`, `specializations`, `employeeCount`, `headquarters`, `locations`, `customers`, `foundingDate`
+- **Use case**: B2B discovery, company search, industry analysis
+
 ## 🛠️ Development Commands
 
 ```sh
