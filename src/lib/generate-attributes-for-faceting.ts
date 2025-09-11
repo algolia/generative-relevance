@@ -1,4 +1,4 @@
-import { generateObject, LanguageModelV1 } from 'ai';
+import { generateObject, LanguageModel } from 'ai';
 import z from 'zod';
 
 import { detectHierarchicalFacets } from './detect-hierarchical-facets';
@@ -12,17 +12,27 @@ const schema = z.object({
     .describe(
       'Array of faceting attributes (e.g., "category", "searchable(brand)", "filterOnly(status)")'
     ),
+  attributeReasons: z
+    .array(
+      z.object({
+        attribute: z.string().describe('The faceting attribute'),
+        reason: z
+          .string()
+          .describe(
+            'Brief explanation of why this attribute is useful for faceting'
+          ),
+      })
+    )
+    .describe('Array of objects explaining each suggested faceting attribute'),
   reasoning: z
     .string()
-    .describe(
-      'Brief explanation of why these faceting attributes were selected'
-    ),
+    .describe('Overall explanation of the faceting strategy and approach'),
 });
 
 export async function generateAttributesForFaceting(
   records: Array<Record<string, unknown>>,
   limit: number = 10,
-  customModel?: LanguageModelV1
+  customModel?: LanguageModel
 ) {
   const sampleRecords = records.slice(0, limit);
 
@@ -88,7 +98,6 @@ export async function generateAttributesForFaceting(
   try {
     const { object, usage } = await generateObject({
       model: customModel || model,
-      maxTokens: 1000,
       temperature: 0.1,
       schema,
       prompt,
@@ -98,9 +107,9 @@ export async function generateAttributesForFaceting(
       const modelName = getModelName(customModel);
 
       addCliUsage(modelName, {
-        promptTokens: usage.promptTokens,
-        completionTokens: usage.completionTokens,
-        totalTokens: usage.totalTokens,
+        inputTokens: usage.inputTokens || 0,
+        outputTokens: usage.outputTokens || 0,
+        totalTokens: usage.totalTokens || 0,
       });
     }
 
@@ -120,6 +129,22 @@ export async function generateAttributesForFaceting(
       object.attributesForFaceting.length - validatedAttributes.length;
     let reasoning = object.reasoning;
 
+    // Filter attributeReasons to only include validated attributes
+    const validatedAttributeReasons = object.attributeReasons.filter((item) =>
+      attributesForFaceting.includes(item.attribute)
+    );
+
+    // Add hierarchical facets to attributeReasons
+    const hierarchicalReasons = hierarchicalFacets.map((facet) => ({
+      attribute: facet,
+      reason: 'Hierarchical facet detected from data structure',
+    }));
+
+    const allAttributeReasons = [
+      ...hierarchicalReasons,
+      ...validatedAttributeReasons,
+    ];
+
     if (hierarchicalFacets.length > 0) {
       reasoning += ` Additionally, detected hierarchical facets: ${hierarchicalFacets.join(
         ', '
@@ -132,6 +157,7 @@ export async function generateAttributesForFaceting(
 
     return {
       attributesForFaceting,
+      attributeReasons: allAttributeReasons,
       reasoning,
     };
   } catch (err) {
@@ -228,8 +254,21 @@ export async function generateAttributesForFaceting(
       );
     }
 
+    // Create fallback attributeReasons
+    const fallbackAttributeReasons = [
+      ...hierarchicalFacets.map((facet) => ({
+        attribute: facet,
+        reason: 'Hierarchical facet detected from data structure',
+      })),
+      ...fallbackFacets.map((facet) => ({
+        attribute: facet,
+        reason: 'Selected based on common faceting patterns in attribute name',
+      })),
+    ];
+
     return {
       attributesForFaceting: allFallbackFacets,
+      attributeReasons: fallbackAttributeReasons,
       reasoning:
         reasoningParts.join('. ') +
         (allFallbackFacets.length > 0

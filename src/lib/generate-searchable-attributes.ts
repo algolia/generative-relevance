@@ -9,9 +9,25 @@ const schema = z.object({
   searchableAttributes: z
     .array(z.string())
     .describe('Array of attribute names that should be searchable'),
+  attributeReasons: z
+    .array(
+      z.object({
+        attribute: z.string().describe('The searchable attribute'),
+        reason: z
+          .string()
+          .describe(
+            'Brief explanation of why this attribute is useful for search'
+          ),
+      })
+    )
+    .describe(
+      'Array of objects explaining each suggested searchable attribute'
+    ),
   reasoning: z
     .string()
-    .describe('Brief explanation of why these attributes were selected'),
+    .describe(
+      'Overall explanation of the searchable attributes strategy and approach'
+    ),
 });
 
 export async function generateSearchableAttributes(
@@ -77,7 +93,6 @@ export async function generateSearchableAttributes(
   try {
     const { object, usage } = await generateObject({
       model: customModel || model,
-      maxTokens: 1000,
       temperature: 0.1,
       schema,
       prompt,
@@ -87,9 +102,9 @@ export async function generateSearchableAttributes(
       const modelName = getModelName(customModel);
 
       addCliUsage(modelName, {
-        promptTokens: usage.promptTokens,
-        completionTokens: usage.completionTokens,
-        totalTokens: usage.totalTokens,
+        inputTokens: usage.inputTokens || 0,
+        outputTokens: usage.outputTokens || 0,
+        totalTokens: usage.totalTokens || 0,
       });
     }
 
@@ -104,12 +119,18 @@ export async function generateSearchableAttributes(
       object.searchableAttributes.length - searchableAttributes.length;
     let reasoning = object.reasoning;
 
+    // Filter attributeReasons to only include validated attributes
+    const validatedAttributeReasons = object.attributeReasons.filter((item) =>
+      searchableAttributes.includes(item.attribute)
+    );
+
     if (filteredCount > 0) {
       reasoning += ` Filtered out ${filteredCount} non-existent attribute(s) from AI suggestions.`;
     }
 
     return {
       searchableAttributes,
+      attributeReasons: validatedAttributeReasons,
       reasoning,
     };
   } catch (err) {
@@ -124,8 +145,15 @@ export async function generateSearchableAttributes(
         typeof sampleRecords[0][key] === 'string'
     );
 
+    // Create fallback attributeReasons
+    const fallbackAttributeReasons = fallbackAttributes.map((attr) => ({
+      attribute: attr,
+      reason: 'Selected as string attribute suitable for search',
+    }));
+
     return {
       searchableAttributes: fallbackAttributes,
+      attributeReasons: fallbackAttributeReasons,
       reasoning: 'Fallback: Selected string attributes excluding URLs and IDs',
     };
   }

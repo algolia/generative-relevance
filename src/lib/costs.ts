@@ -1,8 +1,8 @@
 import { getModelPricing } from './model';
 
 export interface TokenUsage {
-  promptTokens: number;
-  completionTokens: number;
+  inputTokens: number;
+  outputTokens: number;
   totalTokens: number;
 }
 
@@ -27,9 +27,9 @@ function calculateCost(modelName: string, usage: TokenUsage): number {
     return 0;
   }
 
-  const inputCost = (usage.promptTokens / 1_000_000) * pricing.inputTokenCost;
+  const inputCost = (usage.inputTokens / 1_000_000) * pricing.inputTokenCost;
   const outputCost =
-    (usage.completionTokens / 1_000_000) * pricing.outputTokenCost;
+    (usage.outputTokens / 1_000_000) * pricing.outputTokenCost;
 
   return inputCost + outputCost;
 }
@@ -41,11 +41,11 @@ function getTotalCost(costs: CostData[]): number {
 function getTotalTokens(costs: CostData[]): TokenUsage {
   return costs.reduce(
     (total, { usage }) => ({
-      promptTokens: total.promptTokens + usage.promptTokens,
-      completionTokens: total.completionTokens + usage.completionTokens,
+      inputTokens: total.inputTokens + usage.inputTokens,
+      outputTokens: total.outputTokens + usage.outputTokens,
       totalTokens: total.totalTokens + usage.totalTokens,
     }),
-    { promptTokens: 0, completionTokens: 0, totalTokens: 0 }
+    { inputTokens: 0, outputTokens: 0, totalTokens: 0 }
   );
 }
 
@@ -58,13 +58,13 @@ function getCostsByModel(
     if (!result[modelName]) {
       result[modelName] = {
         cost: 0,
-        usage: { promptTokens: 0, completionTokens: 0, totalTokens: 0 },
+        usage: { inputTokens: 0, outputTokens: 0, totalTokens: 0 },
       };
     }
 
     result[modelName].cost += cost;
-    result[modelName].usage.promptTokens += usage.promptTokens;
-    result[modelName].usage.completionTokens += usage.completionTokens;
+    result[modelName].usage.inputTokens += usage.inputTokens;
+    result[modelName].usage.outputTokens += usage.outputTokens;
     result[modelName].usage.totalTokens += usage.totalTokens;
   }
 

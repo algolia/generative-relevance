@@ -11,11 +11,21 @@ const schema = z.object({
     .describe(
       'Array of sortable attributes with direction modifiers (e.g., "desc(price)", "asc(price)", "desc(rating)")'
     ),
+  attributeReasons: z
+    .array(
+      z.object({
+        attribute: z.string().describe('The sortable attribute'),
+        reason: z
+          .string()
+          .describe(
+            'Brief explanation of why this attribute is useful for sorting'
+          ),
+      })
+    )
+    .describe('Array of objects explaining each suggested sortable attribute'),
   reasoning: z
     .string()
-    .describe(
-      'Brief explanation of the sorting attributes and directions chosen'
-    ),
+    .describe('Overall explanation of the sorting strategy and approach'),
 });
 
 export async function generateSortByReplicas(
@@ -104,7 +114,6 @@ export async function generateSortByReplicas(
   try {
     const { object, usage } = await generateObject({
       model: customModel || model,
-      maxTokens: 1000,
       temperature: 0.1,
       schema,
       prompt,
@@ -114,9 +123,9 @@ export async function generateSortByReplicas(
       const modelName = getModelName(customModel);
 
       addCliUsage(modelName, {
-        promptTokens: usage.promptTokens,
-        completionTokens: usage.completionTokens,
-        totalTokens: usage.totalTokens,
+        inputTokens: usage.inputTokens || 0,
+        outputTokens: usage.outputTokens || 0,
+        totalTokens: usage.totalTokens || 0,
       });
     }
 
@@ -131,12 +140,32 @@ export async function generateSortByReplicas(
       object.sortableAttributes.length - sortableAttributes.length;
     let reasoning = object.reasoning;
 
+    // Filter attributeReasons to only include validated attributes
+    // Extract base attribute names from sortable strings (e.g., "desc(price)" -> "price")
+    const baseAttributeNames = sortableAttributes.map((attr) => {
+      const match = attr.match(/(?:desc|asc)\((.+)\)|(.+)/);
+      return match ? match[1] || match[2] : attr;
+    });
+
+    const validatedAttributeReasons = object.attributeReasons.filter((item) => {
+      // Extract base attribute name from attributeReason (e.g., "desc(price)" -> "price")
+      const baseReasonAttr = item.attribute.match(/(?:desc|asc)\((.+)\)|(.+)/);
+      const baseReasonAttrName = baseReasonAttr
+        ? baseReasonAttr[1] || baseReasonAttr[2]
+        : item.attribute;
+      return (
+        baseAttributeNames.includes(baseReasonAttrName) ||
+        sortableAttributes.includes(item.attribute)
+      );
+    });
+
     if (filteredCount > 0) {
       reasoning += ` Filtered out ${filteredCount} non-existent attribute(s) from AI suggestions.`;
     }
 
     return {
       sortableAttributes,
+      attributeReasons: validatedAttributeReasons,
       reasoning,
     };
   } catch (err) {
@@ -188,8 +217,15 @@ export async function generateSortByReplicas(
         }
       });
 
+    // Create fallback attributeReasons
+    const fallbackAttributeReasons = fallbackSorting.map((attr) => ({
+      attribute: attr,
+      reason: 'Selected based on common sorting patterns in attribute name',
+    }));
+
     return {
       sortableAttributes: fallbackSorting,
+      attributeReasons: fallbackAttributeReasons,
       reasoning:
         'Fallback: Selected numeric attributes with sorting-related names and applied common sorting directions',
     };

@@ -11,9 +11,25 @@ const schema = z.object({
     .describe(
       'Array of custom ranking criteria in order of importance (e.g., "desc(sales)", "asc(price)")'
     ),
+  attributeReasons: z
+    .array(
+      z.object({
+        attribute: z.string().describe('The custom ranking attribute'),
+        reason: z
+          .string()
+          .describe(
+            'Brief explanation of why this attribute is useful for custom ranking'
+          ),
+      })
+    )
+    .describe(
+      'Array of objects explaining each suggested custom ranking attribute'
+    ),
   reasoning: z
     .string()
-    .describe('Brief explanation of why these ranking criteria were selected'),
+    .describe(
+      'Overall explanation of the custom ranking strategy and approach'
+    ),
 });
 
 export async function generateCustomRanking(
@@ -77,7 +93,6 @@ export async function generateCustomRanking(
   try {
     const { object, usage } = await generateObject({
       model: customModel || model,
-      maxTokens: 1000,
       temperature: 0.1,
       schema,
       prompt,
@@ -87,9 +102,9 @@ export async function generateCustomRanking(
       const modelName = getModelName(customModel);
 
       addCliUsage(modelName, {
-        promptTokens: usage.promptTokens,
-        completionTokens: usage.completionTokens,
-        totalTokens: usage.totalTokens,
+        inputTokens: usage.inputTokens || 0,
+        outputTokens: usage.outputTokens || 0,
+        totalTokens: usage.totalTokens || 0,
       });
     }
 
@@ -103,12 +118,32 @@ export async function generateCustomRanking(
     const filteredCount = object.customRanking.length - customRanking.length;
     let reasoning = object.reasoning;
 
+    // Filter attributeReasons to only include validated attributes
+    // Extract base attribute names from ranking strings (e.g., "desc(rating)" -> "rating")
+    const baseAttributeNames = customRanking.map((attr) => {
+      const match = attr.match(/(?:desc|asc)\((.+)\)|(.+)/);
+      return match ? match[1] || match[2] : attr;
+    });
+
+    const validatedAttributeReasons = object.attributeReasons.filter((item) => {
+      // Extract base attribute name from attributeReason (e.g., "desc(rating)" -> "rating")
+      const baseReasonAttr = item.attribute.match(/(?:desc|asc)\((.+)\)|(.+)/);
+      const baseReasonAttrName = baseReasonAttr
+        ? baseReasonAttr[1] || baseReasonAttr[2]
+        : item.attribute;
+      return (
+        baseAttributeNames.includes(baseReasonAttrName) ||
+        customRanking.includes(item.attribute)
+      );
+    });
+
     if (filteredCount > 0) {
       reasoning += ` Filtered out ${filteredCount} non-existent attribute(s) from AI suggestions.`;
     }
 
     return {
       customRanking,
+      attributeReasons: validatedAttributeReasons,
       reasoning,
     };
   } catch (err) {
@@ -138,8 +173,15 @@ export async function generateCustomRanking(
       .slice(0, 3)
       .map((key) => `desc(${key})`);
 
+    // Create fallback attributeReasons
+    const fallbackAttributeReasons = fallbackRanking.map((attr) => ({
+      attribute: attr,
+      reason: 'Selected based on common ranking patterns in attribute name',
+    }));
+
     return {
       customRanking: fallbackRanking,
+      attributeReasons: fallbackAttributeReasons,
       reasoning:
         'Fallback: Selected numeric attributes with ranking-related names',
     };

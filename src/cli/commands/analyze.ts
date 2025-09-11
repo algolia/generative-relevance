@@ -95,8 +95,16 @@ export function createAnalyzeCommand(): Command {
           if (results1.searchableAttributes || results2.searchableAttributes) {
             displayDualModelComparison(
               '🔍 Searchable Attributes',
-              results1.searchableAttributes,
-              results2.searchableAttributes,
+              results1.searchableAttributes ? {
+                searchableAttributes: results1.searchableAttributes.searchableAttributes,
+                attributeReasons: results1.searchableAttributes.attributeReasons,
+                reasoning: results1.searchableAttributes.reasoning
+              } : null,
+              results2.searchableAttributes ? {
+                searchableAttributes: results2.searchableAttributes.searchableAttributes,
+                attributeReasons: results2.searchableAttributes.attributeReasons,
+                reasoning: results2.searchableAttributes.reasoning
+              } : null,
               model1!,
               model2,
               verbose
@@ -105,8 +113,16 @@ export function createAnalyzeCommand(): Command {
           if (results1.customRanking || results2.customRanking) {
             displayDualModelComparison(
               '📊 Custom Ranking',
-              results1.customRanking,
-              results2.customRanking,
+              results1.customRanking ? {
+                customRanking: results1.customRanking.customRanking,
+                attributeReasons: results1.customRanking.attributeReasons,
+                reasoning: results1.customRanking.reasoning
+              } : null,
+              results2.customRanking ? {
+                customRanking: results2.customRanking.customRanking,
+                attributeReasons: results2.customRanking.attributeReasons,
+                reasoning: results2.customRanking.reasoning
+              } : null,
               model1!,
               model2,
               verbose
@@ -118,8 +134,16 @@ export function createAnalyzeCommand(): Command {
           ) {
             displayDualModelComparison(
               '🏷️  Attributes for Faceting',
-              results1.attributesForFaceting,
-              results2.attributesForFaceting,
+              results1.attributesForFaceting ? {
+                attributesForFaceting: results1.attributesForFaceting.attributesForFaceting,
+                attributeReasons: results1.attributesForFaceting.attributeReasons,
+                reasoning: results1.attributesForFaceting.reasoning
+              } : null,
+              results2.attributesForFaceting ? {
+                attributesForFaceting: results2.attributesForFaceting.attributesForFaceting,
+                attributeReasons: results2.attributesForFaceting.attributeReasons,
+                reasoning: results2.attributesForFaceting.reasoning
+              } : null,
               model1!,
               model2,
               verbose
@@ -128,8 +152,16 @@ export function createAnalyzeCommand(): Command {
           if (results1.sortableAttributes || results2.sortableAttributes) {
             displayDualModelComparison(
               '🔀 Sortable Attributes',
-              results1.sortableAttributes,
-              results2.sortableAttributes,
+              results1.sortableAttributes ? {
+                sortableAttributes: results1.sortableAttributes.sortableAttributes,
+                attributeReasons: results1.sortableAttributes.attributeReasons,
+                reasoning: results1.sortableAttributes.reasoning
+              } : null,
+              results2.sortableAttributes ? {
+                sortableAttributes: results2.sortableAttributes.sortableAttributes,
+                attributeReasons: results2.sortableAttributes.attributeReasons,
+                reasoning: results2.sortableAttributes.reasoning
+              } : null,
               model1!,
               model2,
               verbose
@@ -151,24 +183,44 @@ export function createAnalyzeCommand(): Command {
           if (searchableAttributes) {
             displaySection(
               '🔍 Searchable Attributes',
-              searchableAttributes,
+              {
+                searchableAttributes: searchableAttributes.searchableAttributes,
+                attributeReasons: searchableAttributes.attributeReasons,
+                reasoning: searchableAttributes.reasoning
+              },
               verbose
             );
           }
           if (customRanking) {
-            displaySection('📊 Custom Ranking', customRanking, verbose);
+            displaySection(
+              '📊 Custom Ranking', 
+              {
+                customRanking: customRanking.customRanking,
+                attributeReasons: customRanking.attributeReasons,
+                reasoning: customRanking.reasoning
+              },
+              verbose
+            );
           }
           if (attributesForFaceting) {
             displaySection(
               '🏷️  Attributes for Faceting',
-              attributesForFaceting,
+              {
+                attributesForFaceting: attributesForFaceting.attributesForFaceting,
+                attributeReasons: attributesForFaceting.attributeReasons,
+                reasoning: attributesForFaceting.reasoning
+              },
               verbose
             );
           }
           if (sortableAttributes) {
             displaySection(
               '🔀 Sortable Attributes',
-              sortableAttributes,
+              {
+                sortableAttributes: sortableAttributes.sortableAttributes,
+                attributeReasons: sortableAttributes.attributeReasons,
+                reasoning: sortableAttributes.reasoning
+              },
               verbose
             );
           }

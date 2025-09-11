@@ -7,8 +7,8 @@ export function formatCostSummary(summary: CostSummary): string {
   output += `━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n`;
   output += `Total Cost: $${totalCost.toFixed(4)}\n`;
   output += `Total Tokens: ${totalUsage.totalTokens.toLocaleString()}\n`;
-  output += `  • Input: ${totalUsage.promptTokens.toLocaleString()}\n`;
-  output += `  • Output: ${totalUsage.completionTokens.toLocaleString()}\n`;
+  output += `  • Input: ${totalUsage.inputTokens.toLocaleString()}\n`;
+  output += `  • Output: ${totalUsage.outputTokens.toLocaleString()}\n`;
 
   if (Object.keys(costsByModel).length > 1) {
     output += `\nBy Model:\n`;
