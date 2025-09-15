@@ -14,10 +14,12 @@
   "dependencies": {
     "@ai-sdk/anthropic": "^2.0.15",
     "@ai-sdk/openai": "^2.0.28",
+    "@types/inquirer": "^9.0.9",
     "ai": "^5.0.40",
     "algoliasearch": "^5.30.0",
     "commander": "^12.1.0",
     "dotenv": "^16.6.1",
+    "inquirer": "^12.9.6",
     "zod": "^3.25.74"
   },
   "devDependencies": {

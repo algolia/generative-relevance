@@ -67,6 +67,7 @@ npm start -- analyze <appId> --api-key <apiKey> --index <indexName> [options]
 | `--sortable` | Generate sortable attributes only |
 | `-m, --model <model>` | Choose AI model (see [Models](#-available-models)) |
 | `--compare-models <models>` | Compare two models (format: `model1,model2`) |
+| `-i, --interactive` | Enable interactive mode to apply configurations |
 
 ### 🔄 Compare Command  
 Compare your existing Algolia index with AI suggestions:
@@ -120,6 +121,23 @@ npm start -- analyze YOUR_APP_ID --api-key YOUR_API_KEY --index your_index_name 
 </details>
 
 <details>
+<summary><strong>Interactive Configuration Application</strong></summary>
+
+```sh
+# Analyze JSON file and interactively apply configurations
+npm start -- analyze datasets/products/clean.json --interactive
+
+# Analyze live index and apply selected configurations
+npm start -- analyze YOUR_APP_ID --api-key YOUR_API_KEY --index your_index_name --interactive --verbose
+
+# Interactive mode prompts you to:
+# 1. Select which configurations to apply
+# 2. Preview changes before applying  
+# 3. Apply configurations to your Algolia index
+```
+</details>
+
+<details>
 <summary><strong>Selective Configuration</strong></summary>
 
 ```sh
@@ -160,6 +178,9 @@ npm start -- compare YOUR_APP_ID YOUR_API_KEY your_index_name --searchable --ran
 
 # Triple comparison: Index vs Model A vs Model B
 npm start -- compare YOUR_APP_ID YOUR_API_KEY your_index_name --compare-models claude-3-5-sonnet-latest,gpt-4.1-nano --verbose
+
+# Interactive comparison - apply configurations after comparing
+npm start -- compare YOUR_APP_ID YOUR_API_KEY your_index_name --interactive
 ```
 </details>
 
@@ -172,7 +193,7 @@ The CLI generates four types of AI configuration suggestions:
 | **Searchable Attributes** | 🔍 | Attributes users can search for |
 | **Custom Ranking** | 📊 | Attributes for relevance ranking |
 | **Attributes for Faceting** | 🏷️ | Attributes for filtering |  
-| **Sortable Attributes** | 🔀 | Attributes for sorting results |
+| **Sortable Attributes** | 🔀 | Attributes for sorting results (creates replica indexes) |
 
 > **💡 Pro Tip**: Use the `--verbose` flag to see detailed AI reasoning behind each recommendation.
 
@@ -197,6 +218,48 @@ The CLI generates four types of AI configuration suggestions:
 - **Triple comparison** - Current configuration vs. Model A vs. Model B
 - **Optimization insights** - See how different AIs would improve your setup
 - **Cost vs. quality** - Compare expensive vs. cost-effective models
+
+## 🤖 Interactive Mode
+
+The CLI includes an interactive mode (`-i, --interactive`) that allows you to apply AI-generated configurations directly to your Algolia index.
+
+### 🚀 How it Works
+
+1. **Generate configurations** - AI analyzes your data and suggests optimizations
+2. **Display results** - View all suggestions with detailed reasoning (if `--verbose`)
+3. **Interactive prompts** - Choose which configurations to apply
+4. **Preview changes** - See exactly what will be modified
+5. **Apply to Algolia** - Automatically update your index settings
+
+### 🔧 Special Handling for Sortable Attributes
+
+Unlike other Algolia settings, sortable attributes require creating **replica indexes**:
+
+- **Input**: AI suggests `["desc(price)", "asc(created_at)"]`
+- **Process**: Creates replica indexes `myindex_price_desc` and `myindex_created_at_asc`
+- **Result**: Users can sort by price (high to low) and creation date (oldest first)
+
+#### Replica Creation Process
+
+1. **Parse sort attributes** - Extract attribute name and direction from `desc(price)` format
+2. **Check existing replicas** - Avoid creating duplicates 
+3. **Add to main index** - Update `replicas` setting with new replica names
+4. **Configure replicas** - Set custom ranking for each replica with sort attribute first
+5. **Error handling** - Continue if individual replicas fail
+
+### 🛡️ Safety Features
+
+- **Preview before applying** - Shows exact changes before modifying your index
+- **Selective application** - Choose individual configuration types to apply
+- **Credential validation** - Prompts for Algolia credentials when not provided
+- **Graceful error handling** - Continues applying other configurations if one fails
+- **Existing replica detection** - Won't recreate already existing sort options
+
+### ⚠️ Limitations
+
+- Interactive mode is **not available** with `--compare-models` flag
+- Requires **Admin API key** to modify index settings
+- **Replica creation** has a 2-second delay to allow Algolia processing
 
 ## 📁 Available Datasets
 

@@ -8,12 +8,14 @@ import { displayComparison, displayTripleComparison } from '../utils/display';
 import { fetchAlgoliaData } from '../utils/algolia';
 import { getCliCostSummary } from '../../lib';
 import { formatCostSummary } from '../utils/format-cost-summary';
+import { promptApplyConfiguration, ConfigurationSection, InteractiveOptions } from '../utils/interactive';
 
 export interface CompareOptions extends ConfigurationOptions {
   limit: string;
   verbose?: boolean;
   model?: string;
   compareModels?: string;
+  interactive?: boolean;
 }
 
 export function createCompareCommand(): Command {
@@ -37,6 +39,7 @@ export function createCompareCommand(): Command {
       '--compare-models <models>',
       'Compare two models (format: model1,model2)'
     )
+    .option('-i, --interactive', 'Enable interactive mode to apply configurations')
     .action(
       async (
         appId: string,
@@ -263,6 +266,67 @@ export function createCompareCommand(): Command {
 
           // Display cost summary
           console.log(formatCostSummary(getCliCostSummary()));
+
+          // Handle interactive mode
+          if (options.interactive && !model2) {
+            // Prepare configuration sections for interactive mode
+            const configSections: ConfigurationSection[] = [];
+            const { searchableAttributes, customRanking, attributesForFaceting, sortableAttributes } = 
+              await generateConfigurations(records, limit, options, model1);
+
+            if (searchableAttributes) {
+              configSections.push({
+                title: '🔍 Searchable Attributes',
+                type: 'searchableAttributes',
+                config: searchableAttributes.searchableAttributes,
+                reasoning: searchableAttributes.reasoning,
+                attributeReasons: searchableAttributes.attributeReasons
+              });
+            }
+
+            if (customRanking) {
+              configSections.push({
+                title: '📊 Custom Ranking',
+                type: 'customRanking', 
+                config: customRanking.customRanking,
+                reasoning: customRanking.reasoning,
+                attributeReasons: customRanking.attributeReasons
+              });
+            }
+
+            if (attributesForFaceting) {
+              configSections.push({
+                title: '🏷️  Attributes for Faceting',
+                type: 'attributesForFaceting',
+                config: attributesForFaceting.attributesForFaceting,
+                reasoning: attributesForFaceting.reasoning,
+                attributeReasons: attributesForFaceting.attributeReasons
+              });
+            }
+
+            if (sortableAttributes) {
+              configSections.push({
+                title: '🔀 Sortable Attributes',
+                type: 'sortableAttributes',
+                config: sortableAttributes.sortableAttributes,
+                reasoning: sortableAttributes.reasoning,
+                attributeReasons: sortableAttributes.attributeReasons
+              });
+            }
+
+            if (configSections.length > 0) {
+              const interactiveOptions: InteractiveOptions = {
+                appId,
+                apiKey,
+                indexName
+              };
+              
+              await promptApplyConfiguration(configSections, interactiveOptions);
+            }
+          } else if (options.interactive && model2) {
+            console.log('\n⚠️  Interactive mode is not supported with dual-model comparison.');
+            console.log('Please run without --compare-models to use interactive features.');
+          }
         } catch (err) {
           console.error(
             '❌ Error:',

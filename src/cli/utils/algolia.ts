@@ -1,5 +1,7 @@
 import { Algoliasearch, algoliasearch, SettingsResponse } from 'algoliasearch';
 
+export { algoliasearch as searchClient };
+
 export async function fetchAlgoliaData(
   appId: string,
   apiKey: string,
