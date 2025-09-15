@@ -42,15 +42,23 @@ OPENAI_API_KEY=your_openai_api_key_here
 
 ### 🔍 Analyze Command
 
-Generate AI configuration suggestions from your JSON data:
+Generate AI configuration suggestions from your JSON data **or** directly from an Algolia index:
 
+#### JSON File Analysis
 ```sh
 npm start -- analyze <json-file> [options]
 ```
 
+#### Algolia Index Analysis  
+```sh
+npm start -- analyze <appId> --api-key <apiKey> --index <indexName> [options]
+```
+
 | Option | Description |
 |--------|-------------|
-| `<json-file>` | Path to JSON file containing an array of records |
+| `<json-file>` or `<appId>` | Path to JSON file **OR** Algolia App ID |
+| `--api-key <key>` | Algolia Admin API Key (required for index analysis) |
+| `--index <name>` | Algolia Index Name (required for index analysis) |
 | `-l, --limit <number>` | Number of records to analyze (default: 10) |
 | `-v, --verbose` | Show detailed AI reasoning for each configuration |
 | `--searchable` | Generate searchable attributes only |
@@ -82,7 +90,7 @@ npm start -- compare <appId> <apiKey> <indexName> [options]
 ### 🔍 Analyze Examples
 
 <details>
-<summary><strong>Basic Usage</strong></summary>
+<summary><strong>JSON File Analysis</strong></summary>
 
 ```sh
 # Quick analysis with default settings
@@ -97,14 +105,29 @@ npm start -- analyze datasets/products/clean.json --limit 5 --verbose
 </details>
 
 <details>
+<summary><strong>Algolia Index Analysis</strong></summary>
+
+```sh
+# Analyze live Algolia index data
+npm start -- analyze YOUR_APP_ID --api-key YOUR_API_KEY --index your_index_name
+
+# Detailed index analysis with reasoning
+npm start -- analyze YOUR_APP_ID --api-key YOUR_API_KEY --index your_index_name --verbose
+
+# Analyze only 20 records from index
+npm start -- analyze YOUR_APP_ID --api-key YOUR_API_KEY --index your_index_name --limit 20
+```
+</details>
+
+<details>
 <summary><strong>Selective Configuration</strong></summary>
 
 ```sh
-# Generate only searchable attributes
+# Generate only searchable attributes (JSON file)
 npm start -- analyze datasets/products/clean.json --searchable
 
-# Generate only custom ranking with reasoning
-npm start -- analyze datasets/products/clean.json --ranking --verbose
+# Generate only custom ranking with reasoning (Algolia index)
+npm start -- analyze YOUR_APP_ID --api-key YOUR_API_KEY --index your_index_name --ranking --verbose
 
 # Generate faceting and sortable attributes
 npm start -- analyze datasets/products/clean.json --faceting --sortable
@@ -115,11 +138,11 @@ npm start -- analyze datasets/products/clean.json --faceting --sortable
 <summary><strong>Model Comparison</strong></summary>
 
 ```sh
-# Compare two models side-by-side
+# Compare two models side-by-side (JSON file)
 npm start -- analyze datasets/products/clean.json --compare-models claude-3-5-sonnet-latest,gpt-4.1-nano
 
-# Compare models with detailed reasoning
-npm start -- analyze datasets/products/clean.json --compare-models claude-3-5-haiku-latest,claude-3-5-sonnet-latest --verbose
+# Compare models with detailed reasoning (Algolia index)
+npm start -- analyze YOUR_APP_ID --api-key YOUR_API_KEY --index your_index_name --compare-models claude-3-5-haiku-latest,claude-3-5-sonnet-latest --verbose
 ```
 </details>
 

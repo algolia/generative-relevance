@@ -8,6 +8,7 @@ import {
 import { displaySection, displayDualModelComparison } from '../utils/display';
 import { getCliCostSummary } from '../../lib';
 import { formatCostSummary } from '../utils/format-cost-summary';
+import { fetchAlgoliaData } from '../utils/algolia';
 
 export interface AnalyzeOptions extends ConfigurationOptions {
   limit: string;
@@ -19,9 +20,11 @@ export interface AnalyzeOptions extends ConfigurationOptions {
 export function createAnalyzeCommand(): Command {
   return new Command('analyze')
     .description(
-      'Analyze JSON records and generate AI configuration suggestions'
+      'Analyze JSON records or Algolia index and generate AI configuration suggestions'
     )
-    .argument('<file>', 'Path to JSON file containing records')
+    .argument('<source>', 'Path to JSON file OR Algolia App ID (use with --api-key and --index)')
+    .option('--api-key <key>', 'Algolia Admin API Key (required with --index)')
+    .option('--index <name>', 'Algolia Index Name (required with --api-key)')
     .option('-l, --limit <number>', 'Number of records to analyze', '10')
     .option('-v, --verbose', 'Show detailed reasoning for each configuration')
     .option('--searchable', 'Generate searchable attributes only')
@@ -37,7 +40,7 @@ export function createAnalyzeCommand(): Command {
       '--compare-models <models>',
       'Compare two models (format: model1,model2)'
     )
-    .action(async (file: string, options: AnalyzeOptions) => {
+    .action(async (source: string, options: AnalyzeOptions & { apiKey?: string; index?: string }) => {
       const startTime = Date.now();
 
       try {
@@ -61,10 +64,35 @@ export function createAnalyzeCommand(): Command {
           validateEnvVars(model2);
         }
 
-        console.log('🔍 Loading records from:', file);
+        // Determine if we're analyzing a file or an Algolia index
+        const isAlgoliaMode = Boolean(options.apiKey && options.index);
+        
+        if (isAlgoliaMode && (!options.apiKey || !options.index)) {
+          throw new Error('Both --api-key and --index are required when using Algolia mode');
+        }
 
-        const fileContent = readFileSync(file, 'utf-8');
-        const records = validateJsonFile(fileContent);
+        let records: any[];
+
+        if (isAlgoliaMode) {
+          console.log(`🔍 Analyzing index "${options.index}" from app "${source}"...`);
+          
+          const limit = parseInt(options.limit);
+          console.log(`📥 Fetching ${limit} records from index...`);
+          
+          const { records: algoliaRecords } = await fetchAlgoliaData(source, options.apiKey!, options.index!, limit);
+          
+          if (algoliaRecords.length === 0) {
+            throw new Error('No records found in the index');
+          }
+          
+          records = algoliaRecords;
+          console.log(`✅ Retrieved ${records.length} records`);
+        } else {
+          console.log('🔍 Loading records from:', source);
+          
+          const fileContent = readFileSync(source, 'utf-8');
+          records = validateJsonFile(fileContent);
+        }
 
         const limit = parseInt(options.limit);
         const verbose = Boolean(options.verbose);
