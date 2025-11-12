@@ -264,9 +264,9 @@ describe('detectHierarchicalFacets', () => {
         name: 'lemon',
         categories: {
           lvl0: ['products', 'goods'],
-          lvl1: ['products > fruits', 'goods > to eat']
-        }
-      }
+          lvl1: ['products > fruits', 'goods > to eat'],
+        },
+      },
     ];
 
     const result = detectHierarchicalFacets(records);
@@ -280,13 +280,13 @@ describe('detectHierarchicalFacets', () => {
         objectID: '1',
         categories: {
           lvl0: 'products',
-          lvl1: ['products > fruits', 'products > vegetables']
+          lvl1: ['products > fruits', 'products > vegetables'],
         },
         taxonomy: {
           tier1: ['animals', 'plants'],
-          tier2: 'animals > mammals'
-        }
-      }
+          tier2: 'animals > mammals',
+        },
+      },
     ];
 
     const result = detectHierarchicalFacets(records);
@@ -302,9 +302,9 @@ describe('detectHierarchicalFacets', () => {
         categories: ['electronics', 'mobile', 'smartphones'],
         validHierarchy: {
           lvl0: ['products'],
-          lvl1: ['products > electronics']
-        }
-      }
+          lvl1: ['products > electronics'],
+        },
+      },
     ];
 
     const result = detectHierarchicalFacets(records);
@@ -321,9 +321,9 @@ describe('detectHierarchicalFacets', () => {
         },
         validArray: {
           lvl0: ['products'],
-          lvl1: ['products > electronics', 'invalid item', 456]
-        }
-      }
+          lvl1: ['products > electronics', 'invalid item', 456],
+        },
+      },
     ];
 
     const result = detectHierarchicalFacets(records);
@@ -337,17 +337,149 @@ describe('detectHierarchicalFacets', () => {
         objectID: '1',
         emptyArray: {
           level0: [],
-          level1: ['products > electronics']
+          level1: ['products > electronics'],
         },
         noArrays: {
           level0: 'products',
-          level1: 'products > electronics'
-        }
-      }
+          level1: 'products > electronics',
+        },
+      },
     ];
 
     const result = detectHierarchicalFacets(records);
 
     expect(result).toEqual(['emptyArray', 'noArrays']);
+  });
+
+  it('should detect hierarchical facets in array format with level objects', () => {
+    const records = [
+      {
+        objectID: '1',
+        hierarchical_categories: [
+          {
+            lvl0: 'products',
+            lvl1: 'products > fruits',
+            lvl2: 'products > fruits > goods',
+            lvl3: 'products > fruits > goods > to eat',
+          },
+        ],
+      },
+    ];
+
+    const result = detectHierarchicalFacets(records);
+
+    expect(result).toEqual(['hierarchical_categories']);
+  });
+
+  it('should detect hierarchical facets in arrays with multiple objects', () => {
+    const records = [
+      {
+        objectID: '1',
+        categories: [
+          {
+            lvl0: 'Electronics',
+            lvl1: 'Electronics > Computers',
+            lvl2: 'Electronics > Computers > Laptops',
+          },
+          {
+            lvl0: 'Home',
+            lvl1: 'Home > Kitchen',
+            lvl2: 'Home > Kitchen > Appliances',
+          },
+        ],
+      },
+    ];
+
+    const result = detectHierarchicalFacets(records);
+
+    expect(result).toEqual(['categories']);
+  });
+
+  it('should ignore arrays with objects that lack chevron separators', () => {
+    const records = [
+      {
+        objectID: '1',
+        nonHierarchical: [
+          {
+            lvl0: 'Cable',
+            lvl1: 'Power cable',
+            lvl2: 'Distribution Cable',
+          },
+        ],
+        validHierarchical: [
+          {
+            lvl0: 'Electronics',
+            lvl1: 'Electronics > Computers',
+          },
+        ],
+      },
+    ];
+
+    const result = detectHierarchicalFacets(records);
+
+    expect(result).toEqual(['validHierarchical']);
+  });
+
+  it('should ignore arrays with non-object items', () => {
+    const records = [
+      {
+        objectID: '1',
+        stringArray: ['Electronics', 'Electronics > Computers'],
+        mixedArray: [
+          'string item',
+          123,
+          {
+            lvl0: 'Electronics',
+            lvl1: 'Electronics > Computers',
+          },
+        ],
+      },
+    ];
+
+    const result = detectHierarchicalFacets(records);
+
+    expect(result).toEqual(['mixedArray']);
+  });
+
+  it('should handle arrays with empty objects', () => {
+    const records = [
+      {
+        objectID: '1',
+        emptyObjects: [
+          {},
+          {
+            lvl0: 'Electronics',
+            lvl1: 'Electronics > Computers',
+          },
+        ],
+      },
+    ];
+
+    const result = detectHierarchicalFacets(records);
+
+    expect(result).toEqual(['emptyObjects']);
+  });
+
+  it('should detect both object and array hierarchical formats in same record', () => {
+    const records = [
+      {
+        objectID: '1',
+        objectFormat: {
+          lvl0: 'Products',
+          lvl1: 'Products > Electronics',
+        },
+        arrayFormat: [
+          {
+            lvl0: 'Categories',
+            lvl1: 'Categories > Home',
+            lvl2: 'Categories > Home > Kitchen',
+          },
+        ],
+      },
+    ];
+
+    const result = detectHierarchicalFacets(records);
+
+    expect(result).toEqual(['objectFormat', 'arrayFormat']);
   });
 });

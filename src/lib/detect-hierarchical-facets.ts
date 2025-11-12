@@ -1,9 +1,10 @@
 /**
  * Detects hierarchical facet attributes in Algolia records.
  *
- * Hierarchical facets are objects with string or array values that use chevron
- * separators (">") to indicate hierarchy levels. Key names can be anything, but
- * values must show hierarchical structure.
+ * Hierarchical facets can be:
+ * - Objects with string or array values that use chevron separators (">") to indicate hierarchy levels
+ * - Arrays containing objects with level keys (lvl0, lvl1, etc.) that use chevron separators
+ * Key names can be anything, but values must show hierarchical structure.
  *
  * @param records - Array of records to analyze
  *
@@ -25,11 +26,19 @@
  *     "taxonomy": {
  *       "lvl0": ["products", "goods"],
  *       "lvl1": ["products > fruits", "goods > to eat"]
- *     }
+ *     },
+ *     "hierarchical_categories": [
+ *       {
+ *         "lvl0": "products",
+ *         "lvl1": "products > fruits",
+ *         "lvl2": "products > fruits > goods",
+ *         "lvl3": "products > fruits > goods > to eat"
+ *       }
+ *     ]
  *   }
  * ];
  *
- * // Returns ["categories", "breadcrumbs", "taxonomy"]
+ * // Returns ["categories", "breadcrumbs", "taxonomy", "hierarchical_categories"]
  * detectHierarchicalFacets(records);
  * ```
  */
@@ -57,6 +66,23 @@ export function detectHierarchicalFacets(
         });
 
         if (hasHierarchicalValues) {
+          hierarchicalFacets.add(key);
+        }
+      } else if (Array.isArray(value)) {
+        const hasHierarchicalArrayObjects = value.some((item) => {
+          if (item && typeof item === 'object' && !Array.isArray(item)) {
+            const obj = item as Record<string, unknown>;
+            return Object.values(obj).some((val) => {
+              if (typeof val === 'string') {
+                return val.includes(' > ');
+              }
+              return false;
+            });
+          }
+          return false;
+        });
+
+        if (hasHierarchicalArrayObjects) {
           hierarchicalFacets.add(key);
         }
       }
