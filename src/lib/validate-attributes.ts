@@ -11,11 +11,28 @@ export function validateAttributes(
 
   records.forEach((record) => {
     Object.entries(record).forEach(([key, value]) => {
-      allAttributeNames.add(key);
+      // Only consider attributes with defined values
+      if (value !== undefined) {
+        allAttributeNames.add(key);
+      }
 
       if (value && typeof value === 'object' && !Array.isArray(value)) {
-        Object.entries(value).forEach(([subKey]) => {
-          allAttributeNames.add(`${key}.${subKey}`);
+        Object.entries(value).forEach(([subKey, subValue]) => {
+          // Only consider sub-attributes with defined values
+          if (subValue !== undefined) {
+            allAttributeNames.add(`${key}.${subKey}`);
+          }
+        });
+      } else if (Array.isArray(value)) {
+        // Handle array format hierarchical facets
+        value.forEach((item) => {
+          if (item && typeof item === 'object' && !Array.isArray(item)) {
+            Object.entries(item).forEach(([subKey, subValue]) => {
+              if (subValue !== undefined) {
+                allAttributeNames.add(`${key}.${subKey}`);
+              }
+            });
+          }
         });
       }
     });
