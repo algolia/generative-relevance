@@ -207,4 +207,121 @@ describe('validateAttributes', () => {
 
     expect(result).toEqual(['name', 'categories.lvl0', 'metadata.source']);
   });
+
+  it('should handle infinitely nested attributes', () => {
+    const records = [
+      {
+        objectID: '1',
+        user: {
+          profile: {
+            preferences: {
+              theme: 'dark',
+              notifications: {
+                email: {
+                  marketing: true,
+                  updates: false
+                }
+              }
+            }
+          },
+          name: 'John'
+        },
+        settings: {
+          privacy: {
+            data: {
+              sharing: 'limited'
+            }
+          }
+        }
+      },
+    ];
+
+    const attributes = [
+      'user.profile.preferences.theme',
+      'user.profile.preferences.notifications.email.marketing',
+      'user.profile.preferences.notifications.email.updates',
+      'settings.privacy.data.sharing',
+      'user.name',
+      'user.profile.nonexistent', // Should be invalid
+      'user.profile.preferences.missing.value', // Should be invalid
+    ];
+    const result = validateAttributes(attributes, records, 'Test');
+
+    expect(result).toEqual([
+      'user.profile.preferences.theme',
+      'user.profile.preferences.notifications.email.marketing',
+      'user.profile.preferences.notifications.email.updates',
+      'settings.privacy.data.sharing',
+      'user.name',
+    ]);
+  });
+
+  it('should handle nested arrays with objects', () => {
+    const records = [
+      {
+        objectID: '1',
+        products: [
+          {
+            specs: {
+              technical: {
+                weight: '2.1kg'
+              }
+            }
+          },
+          {
+            specs: {
+              technical: {
+                weight: '1.8kg',
+                dimensions: '30x20x5cm'
+              }
+            }
+          }
+        ]
+      },
+    ];
+
+    const attributes = [
+      'products.specs.technical.weight',
+      'products.specs.technical.dimensions',
+      'products.specs.technical.unavailable', // Should be invalid
+    ];
+    const result = validateAttributes(attributes, records, 'Test');
+
+    expect(result).toEqual([
+      'products.specs.technical.weight',
+      'products.specs.technical.dimensions',
+    ]);
+  });
+
+  it('should handle mixed arrays and objects at deep levels', () => {
+    const records = [
+      {
+        objectID: '1',
+        inventory: {
+          warehouses: [
+            {
+              location: {
+                details: {
+                  country: 'USA',
+                  zones: ['north', 'south']
+                }
+              }
+            }
+          ]
+        }
+      },
+    ];
+
+    const attributes = [
+      'inventory.warehouses.location.details.country',
+      'inventory.warehouses.location.details.zones',
+      'inventory.warehouses.location.details.nonexistent', // Should be invalid
+    ];
+    const result = validateAttributes(attributes, records, 'Test');
+
+    expect(result).toEqual([
+      'inventory.warehouses.location.details.country',
+      'inventory.warehouses.location.details.zones',
+    ]);
+  });
 });

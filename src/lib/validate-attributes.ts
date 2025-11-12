@@ -9,33 +9,29 @@ export function validateAttributes(
 
   const allAttributeNames = new Set<string>();
 
-  records.forEach((record) => {
-    Object.entries(record).forEach(([key, value]) => {
-      // Only consider attributes with defined values
-      if (value !== undefined) {
-        allAttributeNames.add(key);
-      }
+  function collectAttributes(obj: unknown, prefix = ''): void {
+    if (!obj || typeof obj !== 'object') {
+      return;
+    }
 
-      if (value && typeof value === 'object' && !Array.isArray(value)) {
-        Object.entries(value).forEach(([subKey, subValue]) => {
-          // Only consider sub-attributes with defined values
-          if (subValue !== undefined) {
-            allAttributeNames.add(`${key}.${subKey}`);
-          }
-        });
-      } else if (Array.isArray(value)) {
-        // Handle array format hierarchical facets
-        value.forEach((item) => {
-          if (item && typeof item === 'object' && !Array.isArray(item)) {
-            Object.entries(item).forEach(([subKey, subValue]) => {
-              if (subValue !== undefined) {
-                allAttributeNames.add(`${key}.${subKey}`);
-              }
-            });
-          }
-        });
-      }
-    });
+    if (Array.isArray(obj)) {
+      // Handle arrays - collect attributes from each item
+      obj.forEach((item) => collectAttributes(item, prefix));
+    } else {
+      // Handle objects - collect all nested attributes
+      Object.entries(obj).forEach(([key, value]) => {
+        if (value !== undefined) {
+          const attributePath = prefix ? `${prefix}.${key}` : key;
+          allAttributeNames.add(attributePath);
+          // Recursively collect nested attributes
+          collectAttributes(value, attributePath);
+        }
+      });
+    }
+  }
+
+  records.forEach((record) => {
+    collectAttributes(record);
   });
 
   const validAttributes = attributes.filter((attribute) => {
