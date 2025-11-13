@@ -11,32 +11,49 @@ export async function fetchAlgoliaData(
   try {
     const client = algoliasearch(appId, apiKey);
 
-    console.log('  📋 Fetching index settings...');
-    const settings = await client.getSettings({ indexName });
+    try {
+      console.log('  📋 Fetching index settings...');
+      const settings = await client.getSettings({ indexName });
 
-    console.log('  📄 Fetching sample records...');
-    const searchResult = await client.searchSingleIndex({
-      indexName,
-      searchParams: {
-        query: '',
-        hitsPerPage: limit,
-        attributesToRetrieve: ['*'],
-      },
-    });
+      console.log('  📄 Fetching sample records...');
+      const searchResult = await client.searchSingleIndex({
+        indexName,
+        searchParams: {
+          query: '',
+          hitsPerPage: limit,
+          attributesToRetrieve: ['*'],
+        },
+      });
 
-    console.log('  🔀 Fetching replicas for sortable attributes...');
-    const sortableAttributes = await getSortableAttributesFromReplicas(
-      client,
-      settings
-    );
+      console.log('  🔀 Fetching replicas for sortable attributes...');
+      const sortableAttributes = await getSortableAttributesFromReplicas(
+        client,
+        settings
+      );
 
-    return {
-      currentSettings: {
-        ...settings,
-        sortableAttributes,
-      },
-      records: searchResult.hits,
-    };
+      return {
+        currentSettings: {
+          ...settings,
+          sortableAttributes,
+        },
+        records: searchResult.hits,
+      };
+    } catch (e) {
+      console.log('  📄 Fetching sample records...');
+      const searchResult = await client.searchSingleIndex({
+        indexName,
+        searchParams: {
+          query: '',
+          hitsPerPage: limit,
+          attributesToRetrieve: ['*'],
+        },
+      });
+
+      return {
+        currentSettings: {},
+        records: searchResult.hits,
+      };
+    }
   } catch (error) {
     throw new Error(
       `Failed to fetch data from Algolia: ${
