@@ -149,41 +149,6 @@ export async function generateCustomRanking(
   } catch (err) {
     console.error('AI custom ranking analysis error:', err);
 
-    // Fallback: look for common ranking attributes
-    const [firstRecord] = sampleRecords;
-
-    const fallbackRanking = Object.keys(firstRecord)
-      .filter((key) => {
-        const value = firstRecord[key];
-        const isNumeric = typeof value === 'number';
-        const isBoolean = typeof value === 'boolean';
-        const lowerKey = key.toLowerCase();
-
-        const isRankingAttribute =
-          lowerKey.includes('sales') ||
-          lowerKey.includes('views') ||
-          lowerKey.includes('likes') ||
-          lowerKey.includes('rating') ||
-          lowerKey.includes('popularity') ||
-          lowerKey.includes('count') ||
-          lowerKey.includes('score');
-
-        return (isNumeric || isBoolean) && isRankingAttribute;
-      })
-      .slice(0, 3)
-      .map((key) => `desc(${key})`);
-
-    // Create fallback attributeReasons
-    const fallbackAttributeReasons = fallbackRanking.map((attr) => ({
-      attribute: attr,
-      reason: 'Selected based on common ranking patterns in attribute name',
-    }));
-
-    return {
-      customRanking: fallbackRanking,
-      attributeReasons: fallbackAttributeReasons,
-      reasoning:
-        'Fallback: Selected numeric attributes with ranking-related names',
-    };
+    return null;
   }
 }

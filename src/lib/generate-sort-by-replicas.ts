@@ -171,63 +171,6 @@ export async function generateSortByReplicas(
   } catch (err) {
     console.error('AI sorting analysis error:', err);
 
-    // Fallback: look for common sorting attributes with directions
-    const firstRecord = sampleRecords[0] || {};
-    const fallbackSorting = Object.keys(firstRecord)
-      .filter((key) => {
-        const value = firstRecord[key];
-        const isNumeric = typeof value === 'number';
-        const lowerKey = key.toLowerCase();
-
-        const isSortingAttribute =
-          lowerKey.includes('price') ||
-          lowerKey.includes('cost') ||
-          lowerKey.includes('date') ||
-          lowerKey.includes('rating') ||
-          lowerKey.includes('score') ||
-          lowerKey.includes('views') ||
-          lowerKey.includes('likes') ||
-          lowerKey.includes('sales') ||
-          lowerKey.includes('count') ||
-          lowerKey.includes('timestamp');
-
-        return isNumeric && isSortingAttribute;
-      })
-      .slice(0, 3)
-      .map((key) => {
-        const lowerKey = key.toLowerCase();
-        // Apply common sorting directions based on attribute type
-        if (lowerKey.includes('price') || lowerKey.includes('cost')) {
-          return `desc(${key})`; // Most expensive first is common default
-        } else if (
-          lowerKey.includes('date') ||
-          lowerKey.includes('timestamp')
-        ) {
-          return `desc(${key})`; // Newest first is common default
-        } else if (lowerKey.includes('rating') || lowerKey.includes('score')) {
-          return `desc(${key})`; // Highest rated first
-        } else if (
-          lowerKey.includes('views') ||
-          lowerKey.includes('likes') ||
-          lowerKey.includes('sales')
-        ) {
-          return `desc(${key})`; // Most popular first
-        } else {
-          return `desc(${key})`; // Default to descending
-        }
-      });
-
-    // Create fallback attributeReasons
-    const fallbackAttributeReasons = fallbackSorting.map((attr) => ({
-      attribute: attr,
-      reason: 'Selected based on common sorting patterns in attribute name',
-    }));
-
-    return {
-      sortableAttributes: fallbackSorting,
-      attributeReasons: fallbackAttributeReasons,
-      reasoning:
-        'Fallback: Selected numeric attributes with sorting-related names and applied common sorting directions',
-    };
+    return null;
   }
 }

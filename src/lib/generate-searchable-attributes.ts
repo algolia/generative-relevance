@@ -136,25 +136,6 @@ export async function generateSearchableAttributes(
   } catch (err) {
     console.error('AI analysis error:', err);
 
-    const fallbackAttributes = Object.keys(sampleRecords[0] || {}).filter(
-      (key) =>
-        !key.startsWith('_') &&
-        key !== 'objectID' &&
-        !key.toLowerCase().includes('url') &&
-        !key.toLowerCase().includes('id') &&
-        typeof sampleRecords[0][key] === 'string'
-    );
-
-    // Create fallback attributeReasons
-    const fallbackAttributeReasons = fallbackAttributes.map((attr) => ({
-      attribute: attr,
-      reason: 'Selected as string attribute suitable for search',
-    }));
-
-    return {
-      searchableAttributes: fallbackAttributes,
-      attributeReasons: fallbackAttributeReasons,
-      reasoning: 'Fallback: Selected string attributes excluding URLs and IDs',
-    };
+    return null;
   }
 }
