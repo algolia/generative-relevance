@@ -75,11 +75,11 @@ export async function generateAttributesForFaceting(
     - Status fields (available, featured, new)
     - Locations (city, country, region)
     - Boolean flags users might filter by
+    - Numeric ranking values (price, rating)
 
     EXCLUDE attributes not good for faceting:
     - Unique identifiers (IDs, SKUs, slugs)
     - URLs, links, long text descriptions
-    - Numeric ranking values (price, rating, sales)
     - Dates, timestamps (unless it's categorical, like a year)
 
     MODIFIER RULES:
