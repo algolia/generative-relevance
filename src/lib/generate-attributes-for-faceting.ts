@@ -66,7 +66,6 @@ export async function generateAttributesForFaceting(
     CRITICAL RULES:
     - Only suggest attributes that actually exist in the provided sample records, don't invent ones
     - Only suggest attributes truly suitable for faceting
-    - Better to return fewer, high-quality facets than padding with poor choices
 
     INCLUDE attributes good for filtering:
     - Categories, genres, departments, types
@@ -75,7 +74,7 @@ export async function generateAttributesForFaceting(
     - Status fields (available, featured, new)
     - Locations (city, country, region)
     - Boolean flags users might filter by
-    - Numeric ranking values (price, rating)
+    - Numeric ranking values (price, rating).
 
     EXCLUDE attributes not good for faceting:
     - Unique identifiers (IDs, SKUs, slugs)
@@ -89,8 +88,7 @@ export async function generateAttributesForFaceting(
       Examples: "searchable(brand)", "searchable(author)", "searchable(category)", "searchable(city)", "searchable(tags)", "searchable(genre)"
     - "filterOnly(attribute)" for facets used only programmatically, not displayed in UI
       Examples: "filterOnly(internal_status)", "filterOnly(sync_status)"
-
-    Aim for 5-8 high-quality faceting attributes. You can suggest up to 10-12 knowing some may be filtered out during validation.
+    - no "filterOnly" for attributes meant to be used with a range slider (example: price)
     
     Explain your answer step-by-step.
   `;
