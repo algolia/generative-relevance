@@ -69,6 +69,7 @@ export async function generateCustomRanking(
     
     EXCLUDE attributes that are:
     - Text/string attributes (these go in searchableAttributes)
+    - Numeric attributes formatted as strings
     - IDs and internal references
     - URLs and display attributes
     - Prices (usually used for sorting, not ranking)
