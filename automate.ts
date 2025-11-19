@@ -194,9 +194,12 @@ async function runModel(
 
 async function selectIndex(appClient: Algoliasearch) {
   const indices = await appClient.listIndices({ hitsPerPage: 1000 });
-  const primaryIndices = indices.items.filter((index) => !index.primary);
+  const qsIndices = await getQuerySuggestionsIndices(appClient);
+  const primaryIndices = indices.items.filter(
+    (index) => !index.primary && !qsIndices.includes(index.name)
+  );
+
   // TODO:
-  // - Call query suggestions API to remove them from list
   // - Call analytics / usage API to surface those that have more activities
   // - (try catch regions if necessary)
 
@@ -213,6 +216,53 @@ async function selectIndex(appClient: Algoliasearch) {
   });
 
   return !isCancel(targetIndex) ? targetIndex : undefined;
+}
+
+async function getQuerySuggestionsIndices(
+  appClient: Algoliasearch,
+  region: 'us' | 'eu' = 'us'
+) {
+  const client = appClient.initQuerySuggestions({ region });
+
+  try {
+    const configs = await client.getAllConfigs();
+    return configs.map((config) => config.indexName);
+  } catch (error) {
+    // Rethrow error if we tried both regions
+    if (region === 'eu') {
+      throw error;
+    }
+
+    return getQuerySuggestionsIndices(appClient, 'eu');
+  }
+}
+
+async function getAnalytics(
+  appClient: Algoliasearch,
+  indices: string[],
+  region: 'us' | 'de' = 'us'
+) {
+  const client = appClient.initAnalytics({ region });
+  client.addAlgoliaAgent('poc_generative_relevance_cli');
+
+  try {
+    // const first = await client.getSearchesCount({
+    //   index: indices[0],
+    // });
+    // const rest = await Promise.all(
+    //   indices
+    //     .slice(1)
+    //     .map((index) => client.getSearchesCount({ index }))
+    // );
+    // return [first, ...rest];
+  } catch (error) {
+    // Rethrow error if we tried both regions
+    if (region === 'de') {
+      throw error;
+    }
+
+    return getAnalytics(appClient, indices, 'de');
+  }
 }
 
 start();
