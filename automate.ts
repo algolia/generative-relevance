@@ -43,7 +43,7 @@ async function start() {
     return await start();
   }
 
-  const settings = await getSettings(appClient, targetIndex);
+  const settings = await evaluateSettings(appClient, targetIndex);
   console.log(settings);
 
   // Display searchableAttributes + customRanking
@@ -75,13 +75,61 @@ async function getPersonifiedId(appId: string) {
   return results[0].hits[0].user_can_be_personified_id;
 }
 
-async function getSettings(appClient: Algoliasearch, indexName: string) {
-  return await appClient.getSettings({ indexName });
-  // TODO:
-  // - searchableAttributes: if not there --> red flag
-  // - customRanking: if null --> red flag
-  // - ranking: if ranking formula modified
-  // - sortBy:
+async function evaluateSettings(appClient: Algoliasearch, indexName: string) {
+  const problems = [];
+
+  const settings = await appClient.getSettings({ indexName });
+
+  const DEFAULT_RANKING = [
+    'typo',
+    'geo',
+    'words',
+    'filters',
+    'proximity',
+    'attribute',
+    'exact',
+    'custom',
+  ];
+
+  if (!settings.searchableAttributes) {
+    problems.push({
+      text: 'No searchable attributes',
+      critical: true,
+    });
+  }
+
+  if (!settings.customRanking) {
+    problems.push({
+      text: 'No custom ranking',
+      critical: true,
+    });
+  }
+
+  const ranking = settings.ranking || [];
+
+  if (!(DEFAULT_RANKING.join('') === ranking.join(''))) {
+    const otherCriteria = [
+      ...new Set(ranking).difference(new Set(DEFAULT_RANKING)),
+    ];
+
+    if (ranking.join('').indexOf(DEFAULT_RANKING.join('')) === -1) {
+      problems.push({
+        text: 'Ranking formula changed',
+        data: ranking,
+        critical: false,
+      });
+    }
+
+    if (otherCriteria.length > 0) {
+      problems.push({
+        text: 'Other criteria present',
+        data: otherCriteria,
+        critical: false,
+      });
+    }
+  }
+
+  return problems;
 }
 
 async function selectIndex(appClient: Algoliasearch) {
