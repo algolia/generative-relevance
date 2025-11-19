@@ -1,5 +1,5 @@
-import { isCancel, log, select, text } from '@clack/prompts';
-import { Algoliasearch, algoliasearch } from 'algoliasearch';
+import { confirm, isCancel, log, note, select, text } from '@clack/prompts';
+import { Algoliasearch, algoliasearch, SettingsResponse } from 'algoliasearch';
 import { config } from 'dotenv';
 
 config();
@@ -30,7 +30,6 @@ async function start() {
 
   const adminApiKey = await text({
     message: `Admin API Key (https://dashboard.algolia.com/account/api-keys/all?_pid=${personifiedId}&applicationId=${appId})`,
-    placeholder: 'qpsodjqspodjqspoqsjd',
   });
   if (isCancel(adminApiKey) || !adminApiKey) {
     return await start();
@@ -43,14 +42,30 @@ async function start() {
     return await start();
   }
 
-  const settings = await evaluateSettings(appClient, targetIndex);
-  console.log(settings);
+  const outcome = await evaluateIndex(appClient, targetIndex);
+  if (outcome.action === 'runModel') {
+    log.step('Critical opportunities detected, running model...');
+    await runModel(appClient, targetIndex, outcome.settings);
+  }
 
-  // Display searchableAttributes + customRanking
-  // Determine if relevant to run model, if so
-  // - get search api key for app
-  // - spawn child process
-  // - go to next app
+  if (!outcome.action) {
+    log.info('No critical opportunities detected');
+    return await start();
+  }
+
+  if (outcome.action === 'prompt') {
+    const proceed = await confirm({
+      message: 'Do you want to run the model to improve the index settings?',
+      initialValue: false,
+    });
+
+    if (isCancel(proceed) || !proceed) {
+      return await start();
+    }
+
+    log.step('Running model...');
+    await runModel(appClient, targetIndex, outcome.settings);
+  }
 
   return await start();
 }
@@ -75,7 +90,7 @@ async function getPersonifiedId(appId: string) {
   return results[0].hits[0].user_can_be_personified_id;
 }
 
-async function evaluateSettings(appClient: Algoliasearch, indexName: string) {
+async function evaluateIndex(appClient: Algoliasearch, indexName: string) {
   const problems = [];
 
   const settings = await appClient.getSettings({ indexName });
@@ -129,7 +144,52 @@ async function evaluateSettings(appClient: Algoliasearch, indexName: string) {
     }
   }
 
-  return problems;
+  if (problems.length === 0) {
+    return { action: null, settings };
+  }
+
+  if (problems.some(({ critical }) => critical)) {
+    note(`
+${problems.length} issues found:\n
+${problems
+  .map(
+    (problem) =>
+      `* ${problem.critical ? '(!) ' : ''}${problem.text}\n${JSON.stringify(
+        problem.data,
+        null,
+        2
+      )}`
+  )
+  .join('\n\n')}
+`);
+
+    return { action: 'runModel', settings };
+  }
+
+  return { action: 'prompt', settings };
+}
+
+async function runModel(
+  appClient: Algoliasearch,
+  indexName: string,
+  currentSettings: SettingsResponse
+) {
+  const searchApiKey = (await appClient.listApiKeys()).keys.find(
+    (key) =>
+      key.acl.length === 1 &&
+      key.acl[0] === 'search' &&
+      !key.indexes &&
+      !key.referers &&
+      key.description === 'Search-only API Key'
+  );
+
+  if (!searchApiKey) {
+    log.error(`Could not find Search-only API Key for ${appClient.appId}`);
+    return await start();
+  }
+
+  //   TODO:
+  // - spawn child process
 }
 
 async function selectIndex(appClient: Algoliasearch) {
