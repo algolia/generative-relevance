@@ -9,11 +9,13 @@
     "start": "tsx index.ts",
     "build": "tsc",
     "lint": "eslint .",
-    "test": "vitest"
+    "test": "vitest",
+    "automate": "tsx automate.ts"
   },
   "dependencies": {
     "@ai-sdk/anthropic": "^2.0.15",
     "@ai-sdk/openai": "^2.0.28",
+    "@clack/prompts": "^0.11.0",
     "@types/inquirer": "^9.0.9",
     "ai": "^5.0.40",
     "algoliasearch": "^5.30.0",
