@@ -1,16 +1,24 @@
-import {
-  confirm,
-  isCancel,
-  log,
-  note,
-  select,
-  spinner,
-  text,
-} from '@clack/prompts';
+import { confirm, isCancel, log, note, spinner, text } from '@clack/prompts';
 import { Algoliasearch, algoliasearch, SettingsResponse } from 'algoliasearch';
 import { config } from 'dotenv';
+import fs from 'fs';
 
 config();
+
+const MINIMUM_RECORDS_COUNT = 5000;
+
+const DEFAULT_RANKING = [
+  'typo',
+  'geo',
+  'words',
+  'filters',
+  'proximity',
+  'attribute',
+  'exact',
+  'custom',
+];
+
+const NON_PRODUCTION_INDEX_NAME_PATTERNS = ['test', 'staging'];
 
 const algoliaClient = algoliasearch(
   process.env.APPS_APP_ID!,
@@ -18,6 +26,14 @@ const algoliaClient = algoliasearch(
 );
 
 async function start() {
+  let entries = [];
+  try {
+    entries = JSON.parse(fs.readFileSync('./entries.json', 'utf-8'));
+  } catch (e) {
+    log.error('Could not find entries.');
+    process.exit(1);
+  }
+
   const appId = await text({
     message: 'App ID',
   });
@@ -50,8 +66,6 @@ async function start() {
   if (!targetIndex) {
     return await start();
   }
-
-  return;
 
   const outcome = await evaluateIndex(appClient, targetIndex);
   switch (outcome.action) {
@@ -108,17 +122,6 @@ async function evaluateIndex(appClient: Algoliasearch, indexName: string) {
 
   const settings = await appClient.getSettings({ indexName });
 
-  const DEFAULT_RANKING = [
-    'typo',
-    'geo',
-    'words',
-    'filters',
-    'proximity',
-    'attribute',
-    'exact',
-    'custom',
-  ];
-
   if (!settings.searchableAttributes) {
     problems.push({
       text: 'No searchable attributes',
@@ -161,7 +164,7 @@ async function evaluateIndex(appClient: Algoliasearch, indexName: string) {
     return { action: null, settings };
   }
 
-  if (problems.some(({ critical }) => critical)) {
+  if (problems.length > 0) {
     note(`
 ${problems.length} issues found:\n
 ${problems
@@ -175,7 +178,9 @@ ${problems
   )
   .join('\n\n')}
 `);
+  }
 
+  if (problems.some(({ critical }) => critical)) {
     return { action: 'runModel', settings };
   }
 
@@ -210,9 +215,17 @@ async function selectIndex(appClient: Algoliasearch) {
   const qsIndices = await getQuerySuggestionsIndices(appClient);
   const primaryIndices = indices.items.filter(
     (index) =>
-      !index.primary && !qsIndices.includes(index.name) && index.entries > 5000
-    // filter out stg staging test
+      !index.primary &&
+      !qsIndices.includes(index.name) &&
+      index.entries > MINIMUM_RECORDS_COUNT &&
+      !NON_PRODUCTION_INDEX_NAME_PATTERNS.some((pattern) =>
+        index.name.includes(pattern)
+      )
   );
+
+  if (primaryIndices.length === 0) {
+    return undefined;
+  }
 
   const withAnalytics = (
     await getAnalytics(
@@ -221,26 +234,9 @@ async function selectIndex(appClient: Algoliasearch) {
     )
   ).sort((a, b) => b.count - a.count);
 
-  console.log(withAnalytics);
-  return;
+  const [topIndex] = withAnalytics;
 
-  // TODO:
-  // - Call analytics / usage API to surface those that have more activities
-  // - (try catch regions if necessary)
-
-  const targetIndex = await select({
-    message: 'Select index',
-    options: primaryIndices
-      .sort((a, b) => b.entries - a.entries)
-      .map((index) => ({
-        value: index.name,
-        label: `${index.name} (${index.entries.toLocaleString(
-          'en-GB'
-        )} records)`,
-      })),
-  });
-
-  return !isCancel(targetIndex) ? targetIndex : undefined;
+  return topIndex.index;
 }
 
 async function getQuerySuggestionsIndices(
@@ -304,7 +300,7 @@ async function getAnalytics(appClient: Algoliasearch, indices: string[]) {
         count: Math.max(usAnalytics.count, deAnalytics.count),
       });
     } catch (e) {
-      status.message(
+      log.error(
         `[${padCounter(counter, total)}/${
           indices.length
         }] Failed for ${indexName}`
