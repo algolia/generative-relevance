@@ -1,4 +1,12 @@
-import { confirm, isCancel, log, note, select, text } from '@clack/prompts';
+import {
+  confirm,
+  isCancel,
+  log,
+  note,
+  select,
+  spinner,
+  text,
+} from '@clack/prompts';
 import { Algoliasearch, algoliasearch, SettingsResponse } from 'algoliasearch';
 import { config } from 'dotenv';
 
@@ -42,29 +50,33 @@ async function start() {
     return await start();
   }
 
+  return;
+
   const outcome = await evaluateIndex(appClient, targetIndex);
-  if (outcome.action === 'runModel') {
-    log.step('Critical opportunities detected, running model...');
-    await runModel(appClient, targetIndex, outcome.settings);
-  }
+  switch (outcome.action) {
+    case 'runModel':
+      log.step('Critical opportunities detected, running model...');
+      await runModel(appClient, targetIndex, outcome.settings);
 
-  if (!outcome.action) {
-    log.info('No critical opportunities detected');
-    return await start();
-  }
+      break;
+    case 'prompt': {
+      const proceed = await confirm({
+        message: 'Do you want to run the model to improve the index settings?',
+        initialValue: false,
+      });
 
-  if (outcome.action === 'prompt') {
-    const proceed = await confirm({
-      message: 'Do you want to run the model to improve the index settings?',
-      initialValue: false,
-    });
+      if (isCancel(proceed) || !proceed) {
+        return await start();
+      }
 
-    if (isCancel(proceed) || !proceed) {
-      return await start();
+      log.step('Running model...');
+      await runModel(appClient, targetIndex, outcome.settings);
+
+      break;
     }
-
-    log.step('Running model...');
-    await runModel(appClient, targetIndex, outcome.settings);
+    default:
+      log.info('No critical opportunities detected');
+      return await start();
   }
 
   return await start();
@@ -196,8 +208,17 @@ async function selectIndex(appClient: Algoliasearch) {
   const indices = await appClient.listIndices({ hitsPerPage: 1000 });
   const qsIndices = await getQuerySuggestionsIndices(appClient);
   const primaryIndices = indices.items.filter(
-    (index) => !index.primary && !qsIndices.includes(index.name)
+    (index) =>
+      !index.primary && !qsIndices.includes(index.name) && index.entries > 5000
+    // filter out stg staging test
   );
+
+  const withAnalytics = await getAnalytics(
+    appClient,
+    primaryIndices.map(({ name }) => name)
+  );
+  console.log(withAnalytics);
+  return;
 
   // TODO:
   // - Call analytics / usage API to surface those that have more activities
@@ -237,32 +258,64 @@ async function getQuerySuggestionsIndices(
   }
 }
 
-async function getAnalytics(
-  appClient: Algoliasearch,
-  indices: string[],
-  region: 'us' | 'de' = 'us'
-) {
-  const client = appClient.initAnalytics({ region });
-  client.addAlgoliaAgent('poc_generative_relevance_cli');
+async function getAnalytics(appClient: Algoliasearch, indices: string[]) {
+  const usClient = appClient.initAnalytics({ region: 'us' });
+  const deClient = appClient.initAnalytics({ region: 'de' });
 
-  try {
-    // const first = await client.getSearchesCount({
-    //   index: indices[0],
-    // });
-    // const rest = await Promise.all(
-    //   indices
-    //     .slice(1)
-    //     .map((index) => client.getSearchesCount({ index }))
-    // );
-    // return [first, ...rest];
-  } catch (error) {
-    // Rethrow error if we tried both regions
-    if (region === 'de') {
-      throw error;
+  const status = spinner();
+  let counter = 0;
+  const total = indices.length;
+  status.start(
+    `[${padCounter(counter, indices.length)}/${total}] Fetching analytics`
+  );
+
+  const startDate = new Date();
+  startDate.setDate(startDate.getDate() - 30);
+  startDate.setHours(0, 0, 0, 0);
+
+  const output = [];
+  for (const index of indices) {
+    const indexName = index.length > 23 ? index.substring(0, 20) + '…' : index;
+    counter++;
+    try {
+      status.message(
+        `[${padCounter(counter, total)}/${
+          indices.length
+        }] (US) Fetching analytics for ${indexName}`
+      );
+      const { count } = await usClient.getSearchesCount({
+        index,
+        startDate: startDate.toISOString().split('T')[0],
+      });
+      output.push({ index, count });
+    } catch (e) {
+      try {
+        status.message(
+          `[${padCounter(counter, total)}/${
+            indices.length
+          }] (DE) Fetching analytics for ${indexName}`
+        );
+        const { count } = await deClient.getSearchesCount({
+          index,
+          startDate: startDate.toISOString().split('T')[0],
+        });
+        output.push({ index, count });
+      } catch {
+        status.message(
+          `[${padCounter(counter, total)}/${
+            indices.length
+          }] Failed for ${indexName}`
+        );
+        output.push({ index, count: -1 });
+      }
     }
-
-    return getAnalytics(appClient, indices, 'de');
+    await new Promise((resolve) => setTimeout(resolve, 300));
   }
+  return output;
 }
 
 start();
+
+function padCounter(count: number, total: number) {
+  return count.toString().padStart(total.toString().length, '0');
+}
