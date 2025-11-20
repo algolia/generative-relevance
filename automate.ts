@@ -46,6 +46,7 @@ async function start() {
   const appClient = algoliasearch(appId, adminApiKey);
 
   const targetIndex = await selectIndex(appClient);
+
   if (!targetIndex) {
     return await start();
   }
@@ -213,10 +214,13 @@ async function selectIndex(appClient: Algoliasearch) {
     // filter out stg staging test
   );
 
-  const withAnalytics = await getAnalytics(
-    appClient,
-    primaryIndices.map(({ name }) => name)
-  );
+  const withAnalytics = (
+    await getAnalytics(
+      appClient,
+      primaryIndices.map(({ name }) => name)
+    )
+  ).sort((a, b) => b.count - a.count);
+
   console.log(withAnalytics);
   return;
 
@@ -277,37 +281,36 @@ async function getAnalytics(appClient: Algoliasearch, indices: string[]) {
   for (const index of indices) {
     const indexName = index.length > 23 ? index.substring(0, 20) + '…' : index;
     counter++;
+
     try {
       status.message(
         `[${padCounter(counter, total)}/${
           indices.length
-        }] (US) Fetching analytics for ${indexName}`
+        }] Fetching analytics for ${indexName}`
       );
-      const { count } = await usClient.getSearchesCount({
-        index,
-        startDate: startDate.toISOString().split('T')[0],
-      });
-      output.push({ index, count });
-    } catch (e) {
-      try {
-        status.message(
-          `[${padCounter(counter, total)}/${
-            indices.length
-          }] (DE) Fetching analytics for ${indexName}`
-        );
-        const { count } = await deClient.getSearchesCount({
+      const [usAnalytics, deAnalytics] = await Promise.all([
+        usClient.getSearchesCount({
           index,
           startDate: startDate.toISOString().split('T')[0],
-        });
-        output.push({ index, count });
-      } catch {
-        status.message(
-          `[${padCounter(counter, total)}/${
-            indices.length
-          }] Failed for ${indexName}`
-        );
-        output.push({ index, count: -1 });
-      }
+        }),
+        deClient.getSearchesCount({
+          index,
+          startDate: startDate.toISOString().split('T')[0],
+        }),
+      ]);
+
+      output.push({
+        index,
+        count: Math.max(usAnalytics.count, deAnalytics.count),
+      });
+    } catch (e) {
+      status.message(
+        `[${padCounter(counter, total)}/${
+          indices.length
+        }] Failed for ${indexName}`
+      );
+
+      output.push({ index, count: -1 });
     }
     await new Promise((resolve) => setTimeout(resolve, 300));
   }
