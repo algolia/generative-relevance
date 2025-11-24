@@ -64,7 +64,9 @@ export function createApp(entry: AppEntry) {
         logs.push(`App cannot be personified. Marking as evaluated.`);
         setAppState((prevState) => ({
           ...prevState,
-          name: info.name ?? 'Untitled App',
+          name: info.name
+            ? `${info.name} / ${info.user_email}`
+            : 'Untitled App',
           personifiable: false,
           evaluated: true,
         }));
@@ -73,7 +75,9 @@ export function createApp(entry: AppEntry) {
         logs.push(`App can be personified. Requesting Admin API Key.`);
         setAppState((prevState) => ({
           ...prevState,
-          name: info.name ?? 'Untitled App',
+          name: info.name
+            ? `${info.name} / ${info.user_email}`
+            : 'Untitled App',
           personifiable: true,
         }));
         setStatus('apiKey');

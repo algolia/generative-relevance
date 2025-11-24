@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { Box, Text, useApp, useInput, useStdout } from 'ink';
 import { readFileSync, writeFileSync } from 'node:fs';
 import { PasswordInput } from '@inkjs/ui';
@@ -44,6 +44,21 @@ export function Evaluate({ entriesPath }: EvaluateProps) {
   const boxHeight = Math.floor(availableLines / 2);
   const boxLines = boxHeight - 6;
 
+  const save = () => {
+    const updatedEntries = apps.map((app) => app.export());
+    console.log(updatedEntries);
+    saveEntries(updatedEntries, entriesPath);
+    setShowSaved(true);
+    setTimeout(() => setShowSaved(false), 2000);
+  };
+
+  // Auto-save
+  useEffect(() => {
+    const intervalId = setInterval(save, 5000);
+    return () => clearInterval(intervalId);
+  }, [apps]);
+
+  // Handle keyboard input
   useInput((input, key) => {
     if (!showApiKeyModal) {
       // Apps navigation
@@ -63,10 +78,7 @@ export function Evaluate({ entriesPath }: EvaluateProps) {
 
       // Save
       if (key.ctrl && input === 's') {
-        const updatedEntries = apps.map((app) => app.export());
-        saveEntries(updatedEntries, entriesPath);
-        setShowSaved(true);
-        setTimeout(() => setShowSaved(false), 2000);
+        save();
       }
 
       // Exit
@@ -126,7 +138,7 @@ export function Evaluate({ entriesPath }: EvaluateProps) {
           </Text>
         </Box>
         <Box flexDirection="column" marginTop={1}>
-          {apps
+          {[...apps]
             .sort((a, b) => Number(!!a.evaluated) - Number(!!b.evaluated))
             .slice(
               Math.floor(activeIndex / boxLines) * boxLines,

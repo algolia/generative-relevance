@@ -7,6 +7,7 @@ export async function getAlgoliaAppInfo(client: Algoliasearch, appId: string) {
     name?: string;
     user_can_be_personified: boolean;
     user_can_be_personified_id: number;
+    user_email: string;
   }>({
     requests: [
       {
