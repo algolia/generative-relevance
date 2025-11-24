@@ -1,10 +1,13 @@
 import React from 'react';
 
 import { Command } from 'commander';
+import { render } from 'ink';
+import fs from 'node:fs';
+import path from 'node:path';
+import { cwd } from 'node:process';
+import { Evaluate } from '../../components/Evaluate';
 import { ConfigurationOptions } from '../utils/generation';
 import { validateEnvVars } from '../utils/validation';
-import { Evaluate } from '../../components/Evaluate';
-import { render } from 'ink';
 
 export interface EvaluateOptions extends ConfigurationOptions {
   limit: string;
@@ -32,7 +35,15 @@ export function createEvaluateCommand(): Command {
     .action(async (entriesPath: string, options: EvaluateOptions) => {
       validateEnvVars(options.model);
 
-      render(<Evaluate entriesPath={entriesPath} />, {
+      const currentDirectory = cwd();
+      const fullEntriesPath = path.resolve(currentDirectory, entriesPath);
+      const logsPath = path.resolve(path.dirname(entriesPath), 'logs');
+
+      if (!fs.existsSync(logsPath)) {
+        fs.mkdirSync(logsPath);
+      }
+
+      render(<Evaluate entriesPath={fullEntriesPath} logsPath={logsPath} />, {
         incrementalRendering: true,
       });
     });

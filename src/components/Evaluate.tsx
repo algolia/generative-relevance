@@ -1,17 +1,18 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import { PasswordInput } from '@inkjs/ui';
 import { Box, Text, useApp, useInput, useStdout } from 'ink';
 import { readFileSync, writeFileSync } from 'node:fs';
-import { PasswordInput } from '@inkjs/ui';
+import React, { useEffect, useState } from 'react';
 
 import { type AppEntry, createApp } from './evaluate/createApp';
 
 type EvaluateProps = {
   entriesPath: string;
+  logsPath: string;
 };
 
 const RUNNING_APPS_MAX_COUNT = 2;
 
-export function Evaluate({ entriesPath }: EvaluateProps) {
+export function Evaluate({ entriesPath, logsPath }: EvaluateProps) {
   const { exit } = useApp();
   const { stdout } = useStdout();
 
@@ -38,7 +39,7 @@ export function Evaluate({ entriesPath }: EvaluateProps) {
   const [showApiKeyModal, setShowApiKeyModal] = useState(false);
   const [showSaved, setShowSaved] = useState(false);
 
-  const apps = entries.map((entry) => createApp(entry));
+  const apps = entries.map((entry) => createApp(entry, logsPath));
 
   const availableLines = (stdout.rows || 24) - 12;
   const boxHeight = Math.floor(availableLines / 2);
@@ -46,7 +47,6 @@ export function Evaluate({ entriesPath }: EvaluateProps) {
 
   const save = () => {
     const updatedEntries = apps.map((app) => app.export());
-    console.log(updatedEntries);
     saveEntries(updatedEntries, entriesPath);
     setShowSaved(true);
     setTimeout(() => setShowSaved(false), 2000);
@@ -138,7 +138,7 @@ export function Evaluate({ entriesPath }: EvaluateProps) {
           </Text>
         </Box>
         <Box flexDirection="column" marginTop={1}>
-          {[...apps]
+          {apps
             .sort((a, b) => Number(!!a.evaluated) - Number(!!b.evaluated))
             .slice(
               Math.floor(activeIndex / boxLines) * boxLines,
@@ -180,7 +180,7 @@ export function Evaluate({ entriesPath }: EvaluateProps) {
           Evaluation Logs
         </Text>
         <Box marginTop={1} flexDirection="column">
-          {apps[activeIndex].logs.map((logLine, index) => (
+          {apps[activeIndex].logs.slice(boxLines * -1).map((logLine, index) => (
             <Text key={index} color="gray" wrap="truncate-end">
               {logLine}
             </Text>
