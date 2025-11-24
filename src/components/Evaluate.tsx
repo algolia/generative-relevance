@@ -89,6 +89,19 @@ export function Evaluate({ entriesPath }: EvaluateProps) {
     }
   });
 
+  const runningApps = apps.filter(({ status }) => status === 'running');
+  const spaceLeft = 2 - runningApps.length;
+
+  const runnableApps = apps
+    .filter(({ status }) => status === 'queued')
+    .slice(0, spaceLeft - 1);
+
+  console.log(runnableApps);
+
+  runnableApps.forEach((app) => {
+    app.run();
+  });
+
   return (
     <Box flexDirection="column" height="100%">
       {/* Header */}
@@ -187,16 +200,24 @@ function saveEntries(entries: Entry[], path: string) {
 function createApp(entry: Entry) {
   const logs: string[] = [];
 
+  let _status: 'pending' | 'apiKey' | 'running' | 'evaluated' | 'queued' =
+    'pending' as const;
+
   const [appState, setAppState] = useState(entry);
+
+  if (appState.evaluated || appState.personifiable === false) {
+    _status = 'evaluated';
+  } else if (typeof appState.personifiable === 'undefined') {
+    _status = 'pending';
+  } else if (appState.personifiable && appState.adminApiKey) {
+    _status = 'queued';
+  } else {
+    _status = 'pending';
+  }
+
   const [status, setStatus] = useState<
-    'pending' | 'apiKey' | 'running' | 'evaluated'
-  >(
-    appState.evaluated
-      ? 'evaluated'
-      : appState.personifiable && !appState.adminApiKey
-      ? 'apiKey'
-      : 'pending'
-  );
+    'pending' | 'apiKey' | 'running' | 'evaluated' | 'queued'
+  >(_status);
 
   logs.push(`App ${entry.appId} initialized to ${status} from entry:`);
   logs.push(JSON.stringify(entry));
@@ -245,12 +266,17 @@ function createApp(entry: Entry) {
     run() {
       // TODO: Implement
       setStatus('running');
+
+      setTimeout(() => {
+        setStatus('evaluated');
+      }, 2000);
+
       console.log('running evaluation');
     },
     export: () => appState,
     setAdminApiKey(adminApiKey: string) {
       setAppState((prevState) => ({ ...prevState, adminApiKey }));
-      setStatus('pending');
+      setStatus('queued');
     },
   };
 }
