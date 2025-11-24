@@ -4,6 +4,7 @@ import { config } from 'dotenv';
 import { Command } from 'commander';
 import { createAnalyzeCommand } from './src/cli/commands/analyze';
 import { createCompareCommand } from './src/cli/commands/compare';
+import { createEvaluateCommand } from './src/cli/commands/evaluate';
 
 config();
 
@@ -17,5 +18,6 @@ program
 // Add commands
 program.addCommand(createAnalyzeCommand());
 program.addCommand(createCompareCommand());
+program.addCommand(createEvaluateCommand());
 
 program.parse();
