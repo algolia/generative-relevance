@@ -1,28 +1,15 @@
 import React, { useState } from 'react';
 import { Box, Text, useApp, useInput, useStdout } from 'ink';
 import { readFileSync, writeFileSync } from 'node:fs';
-import { algoliasearch } from 'algoliasearch';
-import { config } from 'dotenv';
-import { PasswordInput, Spinner } from '@inkjs/ui';
+import { PasswordInput } from '@inkjs/ui';
 
-config();
-
-type Entry = {
-  appId: string;
-  adminApiKey?: string;
-  name?: string;
-  personifiable?: boolean;
-  evaluated?: boolean;
-};
+import { type AppEntry, createApp } from './evaluate/createApp';
 
 type EvaluateProps = {
   entriesPath: string;
 };
 
-const algoliaClient = algoliasearch(
-  process.env.APPS_APP_ID!,
-  process.env.APPS_API_KEY!
-);
+const RUNNING_APPS_MAX_COUNT = 2;
 
 export function Evaluate({ entriesPath }: EvaluateProps) {
   const { exit } = useApp();
@@ -49,19 +36,24 @@ export function Evaluate({ entriesPath }: EvaluateProps) {
 
   const [activeIndex, setActiveIndex] = useState(0);
   const [showApiKeyModal, setShowApiKeyModal] = useState(false);
+  const [showSaved, setShowSaved] = useState(false);
+
   const apps = entries.map((entry) => createApp(entry));
 
   const availableLines = (stdout.rows || 24) - 12;
   const boxHeight = Math.floor(availableLines / 2);
+  const boxLines = boxHeight - 6;
 
   useInput((input, key) => {
     if (!showApiKeyModal) {
       // Apps navigation
       if (key.upArrow) {
-        setActiveIndex((index) => Math.max(0, index - 1));
+        setActiveIndex((index) =>
+          index - 1 >= 0 ? index - 1 : apps.length - 1
+        );
       }
       if (key.downArrow) {
-        setActiveIndex((index) => Math.min(apps.length - 1, index + 1));
+        setActiveIndex((index) => (index + 1 < apps.length ? index + 1 : 0));
       }
 
       // Show Api Key Modal
@@ -72,8 +64,9 @@ export function Evaluate({ entriesPath }: EvaluateProps) {
       // Save
       if (key.ctrl && input === 's') {
         const updatedEntries = apps.map((app) => app.export());
-        // TODO: Flash "Saved" status somewhere
         saveEntries(updatedEntries, entriesPath);
+        setShowSaved(true);
+        setTimeout(() => setShowSaved(false), 2000);
       }
 
       // Exit
@@ -90,17 +83,10 @@ export function Evaluate({ entriesPath }: EvaluateProps) {
   });
 
   const runningApps = apps.filter(({ status }) => status === 'running');
-  const spaceLeft = 2 - runningApps.length;
-
   const runnableApps = apps
     .filter(({ status }) => status === 'queued')
-    .slice(0, spaceLeft - 1);
-
-  console.log(runnableApps);
-
-  runnableApps.forEach((app) => {
-    app.run();
-  });
+    .slice(0, RUNNING_APPS_MAX_COUNT - runningApps.length);
+  runnableApps.forEach((app) => app.run());
 
   return (
     <Box flexDirection="column" height="100%">
@@ -112,9 +98,12 @@ export function Evaluate({ entriesPath }: EvaluateProps) {
         paddingY={1}
         flexDirection="column"
       >
-        <Text color="green" bold>
-          Generative Relevance Evaluator
-        </Text>
+        <Box justifyContent="space-between">
+          <Text color="green" bold>
+            Generative Relevance Evaluator
+          </Text>
+          {showSaved && <Text color="green">Entries saved 💾</Text>}
+        </Box>
         <Text dimColor>
           Use ↑/↓ arrows to navigate • Ctrl+S to save entries • Esc to quit
         </Text>
@@ -125,32 +114,58 @@ export function Evaluate({ entriesPath }: EvaluateProps) {
         borderColor="cyan"
         paddingX={2}
         paddingY={1}
-        marginTop={1}
         height={boxHeight}
         flexDirection="column"
       >
-        <Text color="cyan" bold>
-          Applications
-        </Text>
-        <Box flexDirection="column" marginTop={1}>
-          {/* TODO: Slice + Add left/right pagination */}
-          {apps.map((app, index) => (
-            <Box key={app.appId}>{app.render(index === activeIndex)}</Box>
-          ))}
+        <Box gap={1}>
+          <Text color="cyan" bold>
+            Applications
+          </Text>
+          <Text color="cyan">
+            ({activeIndex + 1} / {apps.length})
+          </Text>
         </Box>
+        <Box flexDirection="column" marginTop={1}>
+          {apps
+            .sort((a, b) => Number(!!a.evaluated) - Number(!!b.evaluated))
+            .slice(
+              Math.floor(activeIndex / boxLines) * boxLines,
+              Math.floor(activeIndex / boxLines) * boxLines + boxLines
+            )
+            .map((app, index) => (
+              <Box key={app.appId}>
+                {app.render(index === activeIndex % boxLines)}
+              </Box>
+            ))}
+        </Box>
+      </Box>
+      <Box paddingY={1} alignItems="center" justifyContent="space-around">
+        <Text dimColor>
+          Evaluated:{' '}
+          {apps.filter(({ status }) => status === 'evaluated').length}
+        </Text>
+        <Text dimColor>
+          Running: {apps.filter(({ status }) => status === 'running').length}
+        </Text>
+        <Text dimColor>
+          Queued: {apps.filter(({ status }) => status === 'queued').length}
+        </Text>
+        <Text dimColor>
+          Missing API Key:{' '}
+          {apps.filter(({ status }) => status === 'apiKey').length}
+        </Text>
       </Box>
       {/* Logs */}
       <Box
         borderStyle="round"
-        borderColor="yellow"
+        borderColor="white"
         paddingX={2}
         paddingY={1}
-        marginTop={1}
         height={boxHeight}
         flexDirection="column"
       >
-        <Text color="yellow" bold>
-          Live logs
+        <Text color="white" bold>
+          Evaluation Logs
         </Text>
         <Box marginTop={1} flexDirection="column">
           {apps[activeIndex].logs.map((logLine, index) => (
@@ -167,11 +182,15 @@ export function Evaluate({ entriesPath }: EvaluateProps) {
           flexDirection="column"
           paddingX={3}
           paddingY={1}
-          marginLeft={Math.floor((stdout.columns - 40) / 2)}
+          width="100%"
           marginTop={Math.floor((availableLines - 4) / 2)}
         >
           <Text>
             Enter Admin API Key for <Text bold>{apps[activeIndex].appId}</Text>:
+          </Text>
+          <Text dimColor>
+            https://dashboard.algolia.com/account/api-keys/all?applicationId=
+            {apps[activeIndex].appId}&_pid={apps[activeIndex].persoId}
           </Text>
           <PasswordInput
             onSubmit={(value) => {
@@ -185,7 +204,7 @@ export function Evaluate({ entriesPath }: EvaluateProps) {
   );
 }
 
-function readEntries(path: string): { entries: Entry[]; error?: unknown } {
+function readEntries(path: string): { entries: AppEntry[]; error?: unknown } {
   try {
     return { entries: JSON.parse(readFileSync(path, 'utf-8')) };
   } catch (error) {
@@ -193,132 +212,6 @@ function readEntries(path: string): { entries: Entry[]; error?: unknown } {
   }
 }
 
-function saveEntries(entries: Entry[], path: string) {
+function saveEntries(entries: AppEntry[], path: string) {
   writeFileSync(path, JSON.stringify(entries, null, 2), { encoding: 'utf-8' });
-}
-
-function createApp(entry: Entry) {
-  const logs: string[] = [];
-
-  let _status: 'pending' | 'apiKey' | 'running' | 'evaluated' | 'queued' =
-    'pending' as const;
-
-  const [appState, setAppState] = useState(entry);
-
-  if (appState.evaluated || appState.personifiable === false) {
-    _status = 'evaluated';
-  } else if (typeof appState.personifiable === 'undefined') {
-    _status = 'pending';
-  } else if (appState.personifiable && appState.adminApiKey) {
-    _status = 'queued';
-  } else {
-    _status = 'pending';
-  }
-
-  const [status, setStatus] = useState<
-    'pending' | 'apiKey' | 'running' | 'evaluated' | 'queued'
-  >(_status);
-
-  logs.push(`App ${entry.appId} initialized to ${status} from entry:`);
-  logs.push(JSON.stringify(entry));
-
-  if (typeof appState.personifiable === 'undefined') {
-    logs.push(`Fetching app info for ${entry.appId}...`);
-    getAppInfo(entry.appId).then((info) => {
-      if (!info) {
-        logs.push(`App cannot be personified. Marking as evaluated.`);
-        setAppState((prevState) => ({
-          ...prevState,
-          personifiable: false,
-          evaluated: true,
-        }));
-        setStatus('evaluated');
-      } else {
-        logs.push(`App can be personified. Requesting Admin API Key.`);
-        setAppState((prevState) => ({
-          ...prevState,
-          name: info.name ?? 'Untitled App',
-          personifiable: info.user_can_be_personified,
-        }));
-        // TODO: Save Perso ID to display help
-        setStatus('apiKey');
-      }
-    });
-  }
-
-  return {
-    ...appState,
-    logs,
-    status,
-    render(selected?: boolean) {
-      return (
-        <Box gap={1}>
-          <Text color={selected ? 'cyan' : 'gray'} bold={selected}>
-            {selected ? '•' : ' '}
-          </Text>
-          <StatusIcon status={status} />
-          <Text color={selected ? 'cyan' : 'gray'} bold={selected}>
-            {this.appId} ({this.name})
-          </Text>
-        </Box>
-      );
-    },
-    run() {
-      // TODO: Implement
-      setStatus('running');
-
-      setTimeout(() => {
-        setStatus('evaluated');
-      }, 2000);
-
-      console.log('running evaluation');
-    },
-    export: () => appState,
-    setAdminApiKey(adminApiKey: string) {
-      setAppState((prevState) => ({ ...prevState, adminApiKey }));
-      setStatus('queued');
-    },
-  };
-}
-
-function StatusIcon({
-  status,
-}: {
-  status: 'pending' | 'apiKey' | 'running' | 'evaluated';
-}) {
-  const statusMap = {
-    pending: '⏳',
-    apiKey: '🔑',
-    evaluated: '✅',
-  };
-
-  if (status === 'running') {
-    return <Spinner type="clock" />;
-  }
-
-  return <Text>{statusMap[status]} </Text>;
-}
-
-// TODO: Put in utils
-async function getAppInfo(appId: string) {
-  const { results } = await algoliaClient.searchForHits<{
-    name?: string;
-    user_can_be_personified: boolean;
-    user_can_be_personified_id: number;
-  }>({
-    requests: [
-      {
-        indexName: 'applications_production',
-        facetFilters: [`application_id:${appId}`],
-      },
-    ],
-  });
-
-  const hit = results[0].hits[0];
-
-  if (!hit?.user_can_be_personified) {
-    return undefined;
-  }
-
-  return hit;
 }

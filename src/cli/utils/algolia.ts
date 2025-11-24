@@ -2,6 +2,28 @@ import { Algoliasearch, algoliasearch, SettingsResponse } from 'algoliasearch';
 
 export { algoliasearch as searchClient };
 
+export async function getAlgoliaAppInfo(client: Algoliasearch, appId: string) {
+  const { results } = await client.searchForHits<{
+    name?: string;
+    user_can_be_personified: boolean;
+    user_can_be_personified_id: number;
+  }>({
+    requests: [
+      {
+        indexName: 'applications_production',
+        facetFilters: [`application_id:${appId}`],
+      },
+    ],
+  });
+
+  const hit = results[0].hits[0];
+  if (!hit) {
+    throw new Error(`No application found with id ${appId}`);
+  }
+
+  return hit;
+}
+
 export async function fetchAlgoliaData(
   appId: string,
   apiKey: string,
