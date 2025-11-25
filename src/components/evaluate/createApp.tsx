@@ -1,14 +1,13 @@
 import { algoliasearch } from 'algoliasearch';
 import { config } from 'dotenv';
-import { type Buffer } from 'node:buffer';
-import { spawn } from 'node:child_process';
+
 import fs from 'node:fs';
 import path from 'node:path';
 import React, { useState } from 'react';
-import stripAnsi from 'strip-ansi';
 
 import { getAlgoliaAppInfo } from '../../cli/utils/algolia';
 import { AppLabel, AppStatus } from './AppLabel';
+import { analyze } from '@/features/analyze';
 
 config();
 
@@ -48,7 +47,7 @@ export function createApp(entry: AppEntry, logsPath: string) {
   }
 
   const logPath = path.resolve(logsPath, `${entry.appId}.log`);
-  const [logs, setLogs] = useState<string[]>(
+  const [logs] = useState<string[]>(
     initialStatus === 'evaluated'
       ? fs.readFileSync(logPath, 'utf-8').split('\n')
       : []
@@ -116,35 +115,22 @@ export function createApp(entry: AppEntry, logsPath: string) {
           key.description === 'Search-only API Key'
       );
 
-      const subProcess = spawn(
-        'npm',
-        `start -- analyze ${entry.appId} --api-key ${searchApiKey?.value} --index products --model gpt-5 --limit 10 --verbose`.split(
-          ' '
-        ),
-        { stdio: ['pipe', 'pipe', 'pipe'] }
-      );
-
-      subProcess.stdout.on('data', (data: Buffer) => {
-        const lines = stripAnsi(data.toString('utf-8'));
-        setLogs((prevLogs) => [...prevLogs, ...lines.split('\n')]);
-      });
-      subProcess.stderr.on('data', (data: Buffer) => {
-        const lines = stripAnsi(data.toString('utf-8'));
-        setLogs((prevLogs) => [...prevLogs, ...lines.split('\n')]);
+      const analysis = await analyze({
+        source: entry.appId,
+        apiKey: searchApiKey?.value || '',
+        indexName: 'products',
+        model: 'gpt-5',
+        limit: 10,
+        options: {},
       });
 
-      subProcess.on('close', () => {
-        // FIXME: Hack to get proper logs in subprocess context
-        setLogs((prevLogs) => {
-          fs.writeFileSync(logPath, prevLogs.join('\n'), {
-            flag: 'w',
-            encoding: 'utf-8',
-          });
-          return prevLogs;
-        });
-        setAppState((prevState) => ({ ...prevState, evaluated: true }));
-        setStatus('evaluated');
+      fs.writeFileSync(logPath, JSON.stringify(analysis), {
+        flag: 'w',
+        encoding: 'utf-8',
       });
+
+      setAppState((prevState) => ({ ...prevState, evaluated: true }));
+      setStatus('evaluated');
     },
     export: () => appState,
     setAdminApiKey(adminApiKey: string) {

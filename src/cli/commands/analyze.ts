@@ -1,15 +1,20 @@
 import { Command } from 'commander';
-import { readFileSync } from 'fs';
-import { validateEnvVars, validateJsonFile } from '../utils/validation';
-import {
-  generateConfigurations,
-  ConfigurationOptions,
-} from '../utils/generation';
+import { ConfigurationOptions } from '../utils/generation';
 import { displaySection, displayDualModelComparison } from '../utils/display';
 import { getCliCostSummary } from '../../lib';
 import { formatCostSummary } from '../utils/format-cost-summary';
-import { fetchAlgoliaData } from '../utils/algolia';
-import { promptAnalyzeResults, promptApplyConfiguration, ConfigurationSection, InteractiveOptions } from '../utils/interactive';
+import {
+  promptAnalyzeResults,
+  promptApplyConfiguration,
+  ConfigurationSection,
+  InteractiveOptions,
+} from '../utils/interactive';
+import {
+  analyze,
+  AnalyzeInput,
+  AnalyzeResult,
+  DualModelAnalyzeResult,
+} from '../../features/analyze';
 
 export interface AnalyzeOptions extends ConfigurationOptions {
   limit: string;
@@ -24,7 +29,10 @@ export function createAnalyzeCommand(): Command {
     .description(
       'Analyze JSON records or Algolia index and generate AI configuration suggestions'
     )
-    .argument('<source>', 'Path to JSON file OR Algolia App ID (use with --api-key and --index)')
+    .argument(
+      '<source>',
+      'Path to JSON file OR Algolia App ID (use with --api-key and --index)'
+    )
     .option('--api-key <key>', 'Algolia Admin API Key (required with --index)')
     .option('--index <name>', 'Algolia Index Name (required with --api-key)')
     .option('-l, --limit <number>', 'Number of records to analyze', '10')
@@ -42,296 +50,385 @@ export function createAnalyzeCommand(): Command {
       '--compare-models <models>',
       'Compare two models (format: model1,model2)'
     )
-    .option('-i, --interactive', 'Enable interactive mode to apply configurations')
-    .action(async (source: string, options: AnalyzeOptions & { apiKey?: string; index?: string }) => {
-      const startTime = Date.now();
+    .option(
+      '-i, --interactive',
+      'Enable interactive mode to apply configurations'
+    )
+    .action(
+      async (
+        source: string,
+        options: AnalyzeOptions & { apiKey?: string; index?: string }
+      ) => {
+        try {
+          // Parse models for dual-model comparison
+          let model1 = options.model;
+          let model2: string | undefined;
 
-      try {
-        // Parse models for dual-model comparison
-        let model1 = options.model;
-        let model2: string | undefined;
+          if (options.compareModels) {
+            const models = options.compareModels
+              .split(',')
+              .map((m) => m.trim());
+            if (models.length !== 2) {
+              throw new Error(
+                '--compare-models must specify exactly two models (format: model1,model2)'
+              );
+            }
+            [model1, model2] = models;
+          }
 
-        if (options.compareModels) {
-          const models = options.compareModels.split(',').map((m) => m.trim());
-          if (models.length !== 2) {
+          // Determine if we're analyzing a file or an Algolia index
+          const isAlgoliaMode = Boolean(options.apiKey && options.index);
+
+          if (isAlgoliaMode && (!options.apiKey || !options.index)) {
             throw new Error(
-              '--compare-models must specify exactly two models (format: model1,model2)'
+              'Both --api-key and --index are required when using Algolia mode'
             );
           }
-          [model1, model2] = models;
-        }
 
-        // Validate API keys for all models being used
-        validateEnvVars(model1);
-        if (model2) {
-          validateEnvVars(model2);
-        }
-
-        // Determine if we're analyzing a file or an Algolia index
-        const isAlgoliaMode = Boolean(options.apiKey && options.index);
-        
-        if (isAlgoliaMode && (!options.apiKey || !options.index)) {
-          throw new Error('Both --api-key and --index are required when using Algolia mode');
-        }
-
-        let records: any[];
-
-        if (isAlgoliaMode) {
-          console.log(`🔍 Analyzing index "${options.index}" from app "${source}"...`);
-          
           const limit = parseInt(options.limit);
-          console.log(`📥 Fetching ${limit} records from index...`);
-          
-          const { records: algoliaRecords } = await fetchAlgoliaData(source, options.apiKey!, options.index!, limit);
-          
-          if (algoliaRecords.length === 0) {
-            throw new Error('No records found in the index');
-          }
-          
-          records = algoliaRecords;
-          console.log(`✅ Retrieved ${records.length} records`);
-        } else {
-          console.log('🔍 Loading records from:', source);
-          
-          const fileContent = readFileSync(source, 'utf-8');
-          records = validateJsonFile(fileContent);
-        }
+          const verbose = Boolean(options.verbose);
 
-        const limit = parseInt(options.limit);
-        const verbose = Boolean(options.verbose);
-
-        console.log(
-          `📊 Analyzing ${Math.min(records.length, limit)} records...\n`
-        );
-
-        if (verbose) {
-          console.log('🔧 Verbose mode enabled - will show reasoning\n');
-        }
-
-        if (model2) {
-          console.log(
-            `⚡ Generating AI configurations with dual-model comparison: ${model1} vs ${model2}...`
-          );
-
-          // Run both models in parallel
-          const [results1, results2] = await Promise.all([
-            generateConfigurations(records, limit, options, model1),
-            generateConfigurations(records, limit, options, model2),
-          ]);
-
-          console.log('\n🎯 Model Comparison Results\n');
-          console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n');
-
-          // Display dual-model comparisons
-          if (results1.searchableAttributes || results2.searchableAttributes) {
-            displayDualModelComparison(
-              '🔍 Searchable Attributes',
-              results1.searchableAttributes ? {
-                searchableAttributes: results1.searchableAttributes.searchableAttributes,
-                attributeReasons: results1.searchableAttributes.attributeReasons,
-                reasoning: results1.searchableAttributes.reasoning
-              } : null,
-              results2.searchableAttributes ? {
-                searchableAttributes: results2.searchableAttributes.searchableAttributes,
-                attributeReasons: results2.searchableAttributes.attributeReasons,
-                reasoning: results2.searchableAttributes.reasoning
-              } : null,
-              model1!,
-              model2,
-              verbose
+          // Log initial status
+          if (isAlgoliaMode) {
+            console.log(
+              `🔍 Analyzing index "${options.index}" from app "${source}"...`
             );
+            console.log(`📥 Fetching ${limit} records from index...`);
+          } else {
+            console.log('🔍 Loading records from:', source);
           }
-          if (results1.customRanking || results2.customRanking) {
-            displayDualModelComparison(
-              '📊 Custom Ranking',
-              results1.customRanking ? {
-                customRanking: results1.customRanking.customRanking,
-                attributeReasons: results1.customRanking.attributeReasons,
-                reasoning: results1.customRanking.reasoning
-              } : null,
-              results2.customRanking ? {
-                customRanking: results2.customRanking.customRanking,
-                attributeReasons: results2.customRanking.attributeReasons,
-                reasoning: results2.customRanking.reasoning
-              } : null,
-              model1!,
-              model2,
-              verbose
+
+          // Prepare input for analyze function
+          const analyzeInput: AnalyzeInput = {
+            source,
+            apiKey: options.apiKey,
+            indexName: options.index,
+            limit,
+            model: model1!,
+            compareModel: model2,
+            options: {
+              searchable: options.searchable,
+              ranking: options.ranking,
+              faceting: options.faceting,
+              sortable: options.sortable,
+            },
+          };
+
+          // Run analysis
+          const result = await analyze(analyzeInput);
+
+          if (isAlgoliaMode && 'recordsAnalyzed' in result) {
+            console.log(`✅ Retrieved ${result.recordsAnalyzed} records`);
+          }
+
+          console.log(`📊 Analyzing ${result.recordsAnalyzed} records...\n`);
+
+          if (verbose) {
+            console.log('🔧 Verbose mode enabled - will show reasoning\n');
+          }
+
+          // Display results based on type
+          if ('model2' in result) {
+            // Dual-model comparison result
+            const dualResult = result as DualModelAnalyzeResult;
+
+            console.log(
+              `⚡ Generating AI configurations with dual-model comparison: ${dualResult.model1} vs ${dualResult.model2}...`
             );
-          }
-          if (
-            results1.attributesForFaceting ||
-            results2.attributesForFaceting
-          ) {
-            displayDualModelComparison(
-              '🏷️  Attributes for Faceting',
-              results1.attributesForFaceting ? {
-                attributesForFaceting: results1.attributesForFaceting.attributesForFaceting,
-                attributeReasons: results1.attributesForFaceting.attributeReasons,
-                reasoning: results1.attributesForFaceting.reasoning
-              } : null,
-              results2.attributesForFaceting ? {
-                attributesForFaceting: results2.attributesForFaceting.attributesForFaceting,
-                attributeReasons: results2.attributesForFaceting.attributeReasons,
-                reasoning: results2.attributesForFaceting.reasoning
-              } : null,
-              model1!,
-              model2,
-              verbose
-            );
-          }
-          if (results1.sortableAttributes || results2.sortableAttributes) {
-            displayDualModelComparison(
-              '🔀 Sortable Attributes',
-              results1.sortableAttributes ? {
-                sortableAttributes: results1.sortableAttributes.sortableAttributes,
-                attributeReasons: results1.sortableAttributes.attributeReasons,
-                reasoning: results1.sortableAttributes.reasoning
-              } : null,
-              results2.sortableAttributes ? {
-                sortableAttributes: results2.sortableAttributes.sortableAttributes,
-                attributeReasons: results2.sortableAttributes.attributeReasons,
-                reasoning: results2.sortableAttributes.reasoning
-              } : null,
-              model1!,
-              model2,
-              verbose
-            );
-          }
-        } else {
-          console.log('⚡ Generating AI configurations...');
 
-          const {
-            searchableAttributes,
-            customRanking,
-            attributesForFaceting,
-            sortableAttributes,
-          } = await generateConfigurations(records, limit, options, model1);
+            console.log('\n🎯 Model Comparison Results\n');
+            console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n');
 
-          console.log('\n🎯 AI Configuration Suggestions\n');
-          console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n');
+            // Display dual-model comparisons
+            if (
+              dualResult.results1.searchableAttributes ||
+              dualResult.results2.searchableAttributes
+            ) {
+              displayDualModelComparison(
+                '🔍 Searchable Attributes',
+                dualResult.results1.searchableAttributes
+                  ? {
+                      searchableAttributes:
+                        dualResult.results1.searchableAttributes
+                          .searchableAttributes,
+                      attributeReasons:
+                        dualResult.results1.searchableAttributes
+                          .attributeReasons,
+                      reasoning:
+                        dualResult.results1.searchableAttributes.reasoning,
+                    }
+                  : null,
+                dualResult.results2.searchableAttributes
+                  ? {
+                      searchableAttributes:
+                        dualResult.results2.searchableAttributes
+                          .searchableAttributes,
+                      attributeReasons:
+                        dualResult.results2.searchableAttributes
+                          .attributeReasons,
+                      reasoning:
+                        dualResult.results2.searchableAttributes.reasoning,
+                    }
+                  : null,
+                dualResult.model1,
+                dualResult.model2,
+                verbose
+              );
+            }
+            if (
+              dualResult.results1.customRanking ||
+              dualResult.results2.customRanking
+            ) {
+              displayDualModelComparison(
+                '📊 Custom Ranking',
+                dualResult.results1.customRanking
+                  ? {
+                      customRanking:
+                        dualResult.results1.customRanking.customRanking,
+                      attributeReasons:
+                        dualResult.results1.customRanking.attributeReasons,
+                      reasoning: dualResult.results1.customRanking.reasoning,
+                    }
+                  : null,
+                dualResult.results2.customRanking
+                  ? {
+                      customRanking:
+                        dualResult.results2.customRanking.customRanking,
+                      attributeReasons:
+                        dualResult.results2.customRanking.attributeReasons,
+                      reasoning: dualResult.results2.customRanking.reasoning,
+                    }
+                  : null,
+                dualResult.model1,
+                dualResult.model2,
+                verbose
+              );
+            }
+            if (
+              dualResult.results1.attributesForFaceting ||
+              dualResult.results2.attributesForFaceting
+            ) {
+              displayDualModelComparison(
+                '🏷️  Attributes for Faceting',
+                dualResult.results1.attributesForFaceting
+                  ? {
+                      attributesForFaceting:
+                        dualResult.results1.attributesForFaceting
+                          .attributesForFaceting,
+                      attributeReasons:
+                        dualResult.results1.attributesForFaceting
+                          .attributeReasons,
+                      reasoning:
+                        dualResult.results1.attributesForFaceting.reasoning,
+                    }
+                  : null,
+                dualResult.results2.attributesForFaceting
+                  ? {
+                      attributesForFaceting:
+                        dualResult.results2.attributesForFaceting
+                          .attributesForFaceting,
+                      attributeReasons:
+                        dualResult.results2.attributesForFaceting
+                          .attributeReasons,
+                      reasoning:
+                        dualResult.results2.attributesForFaceting.reasoning,
+                    }
+                  : null,
+                dualResult.model1,
+                dualResult.model2,
+                verbose
+              );
+            }
+            if (
+              dualResult.results1.sortableAttributes ||
+              dualResult.results2.sortableAttributes
+            ) {
+              displayDualModelComparison(
+                '🔀 Sortable Attributes',
+                dualResult.results1.sortableAttributes
+                  ? {
+                      sortableAttributes:
+                        dualResult.results1.sortableAttributes
+                          .sortableAttributes,
+                      attributeReasons:
+                        dualResult.results1.sortableAttributes.attributeReasons,
+                      reasoning:
+                        dualResult.results1.sortableAttributes.reasoning,
+                    }
+                  : null,
+                dualResult.results2.sortableAttributes
+                  ? {
+                      sortableAttributes:
+                        dualResult.results2.sortableAttributes
+                          .sortableAttributes,
+                      attributeReasons:
+                        dualResult.results2.sortableAttributes.attributeReasons,
+                      reasoning:
+                        dualResult.results2.sortableAttributes.reasoning,
+                    }
+                  : null,
+                dualResult.model1,
+                dualResult.model2,
+                verbose
+              );
+            }
+          } else {
+            // Single model analysis result
+            const singleResult = result as AnalyzeResult;
 
-          if (searchableAttributes) {
-            displaySection(
-              '🔍 Searchable Attributes',
-              {
-                searchableAttributes: searchableAttributes.searchableAttributes,
-                attributeReasons: searchableAttributes.attributeReasons,
-                reasoning: searchableAttributes.reasoning
-              },
-              verbose
-            );
-          }
-          if (customRanking) {
-            displaySection(
-              '📊 Custom Ranking', 
-              {
-                customRanking: customRanking.customRanking,
-                attributeReasons: customRanking.attributeReasons,
-                reasoning: customRanking.reasoning
-              },
-              verbose
-            );
-          }
-          if (attributesForFaceting) {
-            displaySection(
-              '🏷️  Attributes for Faceting',
-              {
-                attributesForFaceting: attributesForFaceting.attributesForFaceting,
-                attributeReasons: attributesForFaceting.attributeReasons,
-                reasoning: attributesForFaceting.reasoning
-              },
-              verbose
-            );
-          }
-          if (sortableAttributes) {
-            displaySection(
-              '🔀 Sortable Attributes',
-              {
-                sortableAttributes: sortableAttributes.sortableAttributes,
-                attributeReasons: sortableAttributes.attributeReasons,
-                reasoning: sortableAttributes.reasoning
-              },
-              verbose
-            );
-          }
-        }
+            console.log('⚡ Generating AI configurations...');
 
-        const endTime = Date.now();
-        const duration = (endTime - startTime) / 1000;
-        console.log(`\n✅ Analysis complete! (took ${duration.toFixed(2)}s)`);
+            console.log('\n🎯 AI Configuration Suggestions\n');
+            console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n');
 
-        // Display cost summary
-        console.log(formatCostSummary(getCliCostSummary()));
-
-        // Handle interactive mode
-        if (options.interactive && !model2) {
-          // Prepare configuration sections for interactive mode
-          const configSections: ConfigurationSection[] = [];
-          const { searchableAttributes, customRanking, attributesForFaceting, sortableAttributes } = 
-            await generateConfigurations(records, limit, options, model1);
-
-          if (searchableAttributes) {
-            configSections.push({
-              title: '🔍 Searchable Attributes',
-              type: 'searchableAttributes',
-              config: searchableAttributes.searchableAttributes,
-              reasoning: searchableAttributes.reasoning,
-              attributeReasons: searchableAttributes.attributeReasons
-            });
-          }
-
-          if (customRanking) {
-            configSections.push({
-              title: '📊 Custom Ranking',
-              type: 'customRanking', 
-              config: customRanking.customRanking,
-              reasoning: customRanking.reasoning,
-              attributeReasons: customRanking.attributeReasons
-            });
-          }
-
-          if (attributesForFaceting) {
-            configSections.push({
-              title: '🏷️  Attributes for Faceting',
-              type: 'attributesForFaceting',
-              config: attributesForFaceting.attributesForFaceting,
-              reasoning: attributesForFaceting.reasoning,
-              attributeReasons: attributesForFaceting.attributeReasons
-            });
-          }
-
-          if (sortableAttributes) {
-            configSections.push({
-              title: '🔀 Sortable Attributes',
-              type: 'sortableAttributes',
-              config: sortableAttributes.sortableAttributes,
-              reasoning: sortableAttributes.reasoning,
-              attributeReasons: sortableAttributes.attributeReasons
-            });
-          }
-
-          if (configSections.length > 0) {
-            const { shouldApply, credentials } = await promptAnalyzeResults(isAlgoliaMode);
-            
-            if (shouldApply) {
-              const interactiveOptions: InteractiveOptions = isAlgoliaMode 
-                ? { appId: source, apiKey: options.apiKey!, indexName: options.index! }
-                : credentials!;
-              
-              await promptApplyConfiguration(configSections, interactiveOptions);
+            if (singleResult.searchableAttributes) {
+              displaySection(
+                '🔍 Searchable Attributes',
+                {
+                  searchableAttributes:
+                    singleResult.searchableAttributes.searchableAttributes,
+                  attributeReasons:
+                    singleResult.searchableAttributes.attributeReasons,
+                  reasoning: singleResult.searchableAttributes.reasoning,
+                },
+                verbose
+              );
+            }
+            if (singleResult.customRanking) {
+              displaySection(
+                '📊 Custom Ranking',
+                {
+                  customRanking: singleResult.customRanking.customRanking,
+                  attributeReasons: singleResult.customRanking.attributeReasons,
+                  reasoning: singleResult.customRanking.reasoning,
+                },
+                verbose
+              );
+            }
+            if (singleResult.attributesForFaceting) {
+              displaySection(
+                '🏷️  Attributes for Faceting',
+                {
+                  attributesForFaceting:
+                    singleResult.attributesForFaceting.attributesForFaceting,
+                  attributeReasons:
+                    singleResult.attributesForFaceting.attributeReasons,
+                  reasoning: singleResult.attributesForFaceting.reasoning,
+                },
+                verbose
+              );
+            }
+            if (singleResult.sortableAttributes) {
+              displaySection(
+                '🔀 Sortable Attributes',
+                {
+                  sortableAttributes:
+                    singleResult.sortableAttributes.sortableAttributes,
+                  attributeReasons:
+                    singleResult.sortableAttributes.attributeReasons,
+                  reasoning: singleResult.sortableAttributes.reasoning,
+                },
+                verbose
+              );
             }
           }
-        } else if (options.interactive && model2) {
-          console.log('\n⚠️  Interactive mode is not supported with dual-model comparison.');
-          console.log('Please run without --compare-models to use interactive features.');
+
+          console.log(
+            `\n✅ Analysis complete! (took ${result.duration.toFixed(2)}s)`
+          );
+
+          // Display cost summary
+          console.log(formatCostSummary(getCliCostSummary()));
+
+          // Handle interactive mode
+          if (options.interactive && !model2) {
+            // Prepare configuration sections for interactive mode
+            const configSections: ConfigurationSection[] = [];
+
+            // Re-generate configurations for interactive mode if needed
+            const singleResult = result as AnalyzeResult;
+            const {
+              searchableAttributes,
+              customRanking,
+              attributesForFaceting,
+              sortableAttributes,
+            } = singleResult;
+
+            if (searchableAttributes) {
+              configSections.push({
+                title: '🔍 Searchable Attributes',
+                type: 'searchableAttributes',
+                config: searchableAttributes.searchableAttributes,
+                reasoning: searchableAttributes.reasoning,
+                attributeReasons: searchableAttributes.attributeReasons,
+              });
+            }
+
+            if (customRanking) {
+              configSections.push({
+                title: '📊 Custom Ranking',
+                type: 'customRanking',
+                config: customRanking.customRanking,
+                reasoning: customRanking.reasoning,
+                attributeReasons: customRanking.attributeReasons,
+              });
+            }
+
+            if (attributesForFaceting) {
+              configSections.push({
+                title: '🏷️  Attributes for Faceting',
+                type: 'attributesForFaceting',
+                config: attributesForFaceting.attributesForFaceting,
+                reasoning: attributesForFaceting.reasoning,
+                attributeReasons: attributesForFaceting.attributeReasons,
+              });
+            }
+
+            if (sortableAttributes) {
+              configSections.push({
+                title: '🔀 Sortable Attributes',
+                type: 'sortableAttributes',
+                config: sortableAttributes.sortableAttributes,
+                reasoning: sortableAttributes.reasoning,
+                attributeReasons: sortableAttributes.attributeReasons,
+              });
+            }
+
+            if (configSections.length > 0) {
+              const { shouldApply, credentials } = await promptAnalyzeResults(
+                isAlgoliaMode
+              );
+
+              if (shouldApply) {
+                const interactiveOptions: InteractiveOptions = isAlgoliaMode
+                  ? {
+                      appId: source,
+                      apiKey: options.apiKey!,
+                      indexName: options.index!,
+                    }
+                  : credentials!;
+
+                await promptApplyConfiguration(
+                  configSections,
+                  interactiveOptions
+                );
+              }
+            }
+          } else if (options.interactive && model2) {
+            console.log(
+              '\n⚠️  Interactive mode is not supported with dual-model comparison.'
+            );
+            console.log(
+              'Please run without --compare-models to use interactive features.'
+            );
+          }
+        } catch (err) {
+          console.error(
+            '❌ Error:',
+            err instanceof Error ? err.message : 'Unknown error'
+          );
+          process.exit(1);
         }
-      } catch (err) {
-        console.error(
-          '❌ Error:',
-          err instanceof Error ? err.message : 'Unknown error'
-        );
-        process.exit(1);
       }
-    });
+    );
 }
