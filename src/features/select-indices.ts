@@ -6,7 +6,7 @@ const NON_PRODUCTION_INDEX_NAME_PATTERNS = ['test', 'staging'];
 
 export async function selectIndices(
   appClient: Algoliasearch,
-  logFn: (...lines: string[]) => void = () => {}
+  logFn: (...lines: string[]) => void = (...lines) => console.log(...lines)
 ) {
   logFn('\nListing indices…');
 
@@ -23,6 +23,8 @@ export async function selectIndices(
   );
 
   if (primaryIndices.length === 0) {
+    logFn('- No primary indices found');
+
     return [];
   }
 

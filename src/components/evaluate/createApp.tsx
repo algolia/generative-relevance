@@ -19,7 +19,7 @@ export type AppEntry = {
   appId: string;
   adminApiKey?: string;
   name?: string;
-  personifiable?: boolean;
+  persoId?: number;
   evaluated?: boolean;
 };
 
@@ -36,13 +36,13 @@ export function createApp(entry: AppEntry, logsPath: string) {
     case appState.evaluated:
       initialStatus = 'evaluated';
       break;
-    case appState.evaluated === false || appState.personifiable === false:
+    case appState.evaluated === false || !appState.persoId:
       initialStatus = 'evaluated';
       break;
-    case appState.personifiable && !appState.adminApiKey:
+    case !!appState.persoId && !appState.adminApiKey:
       initialStatus = 'apiKey';
       break;
-    case appState.personifiable && !!appState.adminApiKey:
+    case appState.persoId && !!appState.adminApiKey:
       initialStatus = 'queued';
       break;
     default:
@@ -50,21 +50,22 @@ export function createApp(entry: AppEntry, logsPath: string) {
       break;
   }
 
-  const logPath = path.resolve(logsPath, `${entry.appId}.log`);
+  const logPath = path.resolve(logsPath, `${entry.appId}.json`);
+  const initialLogs =
+    JSON.parse(
+      fs.readFileSync(logPath, { encoding: 'utf-8', flag: 'a+' }) || '{}'
+    ).logs ?? [];
   const [logs, setLogs] = useState<string[]>(
-    initialStatus === 'evaluated'
-      ? fs.readFileSync(logPath, 'utf-8').split('\n')
-      : []
+    initialStatus === 'evaluated' ? initialLogs : []
   );
   const updateLogs = (...lines: string[]) =>
     setLogs((prevLogs) => [...prevLogs, ...lines]);
 
-  const [persoId, setPersoId] = useState<number>();
   const [status, setStatus] = useState<
     'pending' | 'apiKey' | 'running' | 'evaluated' | 'queued'
   >(initialStatus);
 
-  if (typeof appState.personifiable === 'undefined') {
+  if (typeof appState.persoId === 'undefined') {
     fetchAlgoliaAppInfo(algoliaClient, entry.appId).then((info) => {
       if (!info?.user_can_be_personified) {
         setAppState((prevState) => ({
@@ -72,7 +73,7 @@ export function createApp(entry: AppEntry, logsPath: string) {
           name: info.name
             ? `${info.name} / ${info.user_email}`
             : 'Untitled App',
-          personifiable: false,
+          persoId: 0,
           evaluated: true,
         }));
         setStatus('evaluated');
@@ -82,10 +83,9 @@ export function createApp(entry: AppEntry, logsPath: string) {
           name: info.name
             ? `${info.name} / ${info.user_email}`
             : 'Untitled App',
-          personifiable: true,
+          persoId: info.user_can_be_personified_id,
         }));
         setStatus('apiKey');
-        setPersoId(info.user_can_be_personified_id);
       }
     });
   }
@@ -93,7 +93,6 @@ export function createApp(entry: AppEntry, logsPath: string) {
   return {
     ...appState,
     logs,
-    persoId,
     status,
     render: (selected: boolean) => (
       <AppLabel
@@ -106,35 +105,55 @@ export function createApp(entry: AppEntry, logsPath: string) {
     async run() {
       setStatus('running');
 
+      const done = (
+        {
+          analysis,
+          reason,
+        }: {
+          analysis?: any;
+          reason?: string;
+        } = { analysis: {} }
+      ) => {
+        // FIXME: Hack to get up-to-date logs within the run context
+        setLogs((prevLogs) => {
+          const fullLogs = [...prevLogs, `- ${reason ?? 'Done'}`];
+          fs.writeFileSync(
+            logPath,
+            JSON.stringify({ analysis, logs: fullLogs }, null, 2),
+            { flag: 'w', encoding: 'utf-8' }
+          );
+
+          return fullLogs;
+        });
+
+        setAppState((prevState) => ({ ...prevState, evaluated: true }));
+        setStatus('evaluated');
+      };
+
       const appClient = algoliasearch(this.appId, this.adminApiKey!);
       const searchApiKey = await fetchAlgoliaSearchApiKey(appClient);
 
       const [targetIndex] = await selectIndices(appClient, updateLogs);
+      if (!targetIndex) {
+        return done();
+      }
 
       updateLogs(`\nRunning analysis on ${targetIndex}…`);
-      const analysis = await analyze({
-        source: entry.appId,
-        apiKey: searchApiKey,
-        indexName: targetIndex,
-        model: 'gpt-5',
-        limit: 10,
-        options: {},
-      });
-      updateLogs(`- Done`);
+      // TODO: Forward command line arguments
+      try {
+        const analysis = await analyze({
+          source: entry.appId,
+          apiKey: searchApiKey,
+          indexName: targetIndex,
+          model: 'gpt-5',
+          limit: 10,
+          options: {},
+        });
 
-      // FIXME: Hack to get up-to-date logs within the run context
-      setLogs((prevLogs) => {
-        fs.writeFileSync(
-          logPath,
-          JSON.stringify({ analysis, logs: prevLogs }, null, 2),
-          { flag: 'w', encoding: 'utf-8' }
-        );
-
-        return prevLogs;
-      });
-
-      setAppState((prevState) => ({ ...prevState, evaluated: true }));
-      setStatus('evaluated');
+        done({ analysis });
+      } catch (e) {
+        done({ reason: String(e) });
+      }
     },
     export: () => appState,
     setAdminApiKey(adminApiKey: string) {
