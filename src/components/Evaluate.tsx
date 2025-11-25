@@ -182,7 +182,7 @@ export function Evaluate({ entriesPath, logsPath }: EvaluateProps) {
         <Box marginTop={1} flexDirection="column">
           {apps[activeIndex].logs.slice(boxLines * -1).map((logLine, index) => (
             <Text key={index} color="gray" wrap="truncate-end">
-              {logLine}
+              {logLine.length > 0 ? logLine : ' '}
             </Text>
           ))}
         </Box>

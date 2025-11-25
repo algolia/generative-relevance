@@ -2,7 +2,10 @@ import { Algoliasearch, algoliasearch, SettingsResponse } from 'algoliasearch';
 
 export { algoliasearch as searchClient };
 
-export async function getAlgoliaAppInfo(client: Algoliasearch, appId: string) {
+export async function fetchAlgoliaAppInfo(
+  client: Algoliasearch,
+  appId: string
+) {
   const { results } = await client.searchForHits<{
     name?: string;
     user_can_be_personified: boolean;
@@ -23,6 +26,24 @@ export async function getAlgoliaAppInfo(client: Algoliasearch, appId: string) {
   }
 
   return hit;
+}
+
+export async function fetchAlgoliaSearchApiKey(client: Algoliasearch) {
+  const result = (await client.listApiKeys()).keys.find(
+    (key) =>
+      (key.acl.length === 1 &&
+        key.acl[0] === 'search' &&
+        !key.indexes &&
+        !key.referers &&
+        key.description === 'Search-only API Key') ||
+      key.description?.startsWith('Search API Key for')
+  );
+
+  if (!result) {
+    throw new Error('No search-only API key found');
+  }
+
+  return result.value;
 }
 
 export async function fetchAlgoliaData(

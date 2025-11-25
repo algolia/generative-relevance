@@ -5,9 +5,13 @@ import fs from 'node:fs';
 import path from 'node:path';
 import React, { useState } from 'react';
 
-import { getAlgoliaAppInfo } from '../../cli/utils/algolia';
-import { AppLabel, AppStatus } from './AppLabel';
+import {
+  fetchAlgoliaAppInfo,
+  fetchAlgoliaSearchApiKey,
+} from '@/cli/utils/algolia';
 import { analyze } from '@/features/analyze';
+import { selectIndices } from '@/features/select-indices';
+import { AppLabel, AppStatus } from './AppLabel';
 
 config();
 
@@ -47,11 +51,13 @@ export function createApp(entry: AppEntry, logsPath: string) {
   }
 
   const logPath = path.resolve(logsPath, `${entry.appId}.log`);
-  const [logs] = useState<string[]>(
+  const [logs, setLogs] = useState<string[]>(
     initialStatus === 'evaluated'
       ? fs.readFileSync(logPath, 'utf-8').split('\n')
       : []
   );
+  const updateLogs = (...lines: string[]) =>
+    setLogs((prevLogs) => [...prevLogs, ...lines]);
 
   const [persoId, setPersoId] = useState<number>();
   const [status, setStatus] = useState<
@@ -59,7 +65,7 @@ export function createApp(entry: AppEntry, logsPath: string) {
   >(initialStatus);
 
   if (typeof appState.personifiable === 'undefined') {
-    getAlgoliaAppInfo(algoliaClient, entry.appId).then((info) => {
+    fetchAlgoliaAppInfo(algoliaClient, entry.appId).then((info) => {
       if (!info?.user_can_be_personified) {
         setAppState((prevState) => ({
           ...prevState,
@@ -101,32 +107,30 @@ export function createApp(entry: AppEntry, logsPath: string) {
       setStatus('running');
 
       const appClient = algoliasearch(this.appId, this.adminApiKey!);
+      const searchApiKey = await fetchAlgoliaSearchApiKey(appClient);
 
-      // TODO:
-      // - Determine target index
-      // - Evaluate opportunity
+      const [targetIndex] = await selectIndices(appClient, updateLogs);
 
-      const searchApiKey = (await appClient.listApiKeys()).keys.find(
-        (key) =>
-          key.acl.length === 1 &&
-          key.acl[0] === 'search' &&
-          !key.indexes &&
-          !key.referers &&
-          key.description === 'Search-only API Key'
-      );
-
+      updateLogs(`\nRunning analysis on ${targetIndex}…`);
       const analysis = await analyze({
         source: entry.appId,
-        apiKey: searchApiKey?.value || '',
-        indexName: 'products',
+        apiKey: searchApiKey,
+        indexName: targetIndex,
         model: 'gpt-5',
         limit: 10,
         options: {},
       });
+      updateLogs(`- Done`);
 
-      fs.writeFileSync(logPath, JSON.stringify(analysis), {
-        flag: 'w',
-        encoding: 'utf-8',
+      // FIXME: Hack to get up-to-date logs within the run context
+      setLogs((prevLogs) => {
+        fs.writeFileSync(
+          logPath,
+          JSON.stringify({ analysis, logs: prevLogs }, null, 2),
+          { flag: 'w', encoding: 'utf-8' }
+        );
+
+        return prevLogs;
       });
 
       setAppState((prevState) => ({ ...prevState, evaluated: true }));
