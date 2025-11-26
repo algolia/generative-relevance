@@ -10,6 +10,7 @@ import {
   fetchAlgoliaSearchApiKey,
 } from '@/cli/utils/algolia';
 import { analyze } from '@/features/analyze';
+import { evaluateIndex } from '@/features/evaluate-index';
 import { selectIndices } from '@/features/select-indices';
 import { AppLabel, AppStatus } from './AppLabel';
 
@@ -28,7 +29,7 @@ const algoliaClient = algoliasearch(
   process.env.APPS_API_KEY!
 );
 
-export function createApp(entry: AppEntry, logsPath: string) {
+export function createApp(entry: AppEntry, outputPath: string) {
   const [appState, setAppState] = useState(entry);
 
   let initialStatus: AppStatus;
@@ -50,10 +51,10 @@ export function createApp(entry: AppEntry, logsPath: string) {
       break;
   }
 
-  const logPath = path.resolve(logsPath, `${entry.appId}.json`);
+  const outputFile = path.resolve(outputPath, `${entry.appId}.json`);
   const initialLogs =
     JSON.parse(
-      fs.readFileSync(logPath, { encoding: 'utf-8', flag: 'a+' }) || '{}'
+      fs.readFileSync(outputFile, { encoding: 'utf-8', flag: 'a+' }) || '{}'
     ).logs ?? [];
   const [logs, setLogs] = useState<string[]>(
     initialStatus === 'evaluated' ? initialLogs : []
@@ -109,17 +110,32 @@ export function createApp(entry: AppEntry, logsPath: string) {
         {
           analysis,
           reason,
+          settings,
         }: {
           analysis?: any;
           reason?: string;
+          settings?: any;
         } = { analysis: {} }
       ) => {
         // FIXME: Hack to get up-to-date logs within the run context
         setLogs((prevLogs) => {
           const fullLogs = [...prevLogs, `- ${reason ?? 'Done'}`];
           fs.writeFileSync(
-            logPath,
-            JSON.stringify({ analysis, logs: fullLogs }, null, 2),
+            outputFile,
+            JSON.stringify(
+              {
+                info: {
+                  ...appState,
+                  adminApiKey: '*'.repeat(32),
+                  searchApiKey,
+                },
+                settings,
+                analysis,
+                logs: fullLogs,
+              },
+              null,
+              2
+            ),
             { flag: 'w', encoding: 'utf-8' }
           );
 
@@ -138,6 +154,16 @@ export function createApp(entry: AppEntry, logsPath: string) {
         return done();
       }
 
+      const { action, settings } = await evaluateIndex(
+        appClient,
+        targetIndex,
+        updateLogs
+      );
+
+      if (!action) {
+        return done({ settings });
+      }
+
       updateLogs(`\nRunning analysis on ${targetIndex}…`);
       // TODO: Forward command line arguments
       try {
@@ -150,9 +176,9 @@ export function createApp(entry: AppEntry, logsPath: string) {
           options: {},
         });
 
-        done({ analysis });
+        done({ analysis, settings });
       } catch (e) {
-        done({ reason: String(e) });
+        done({ reason: String(e), settings });
       }
     },
     export: () => appState,

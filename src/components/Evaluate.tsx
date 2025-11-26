@@ -7,12 +7,12 @@ import { type AppEntry, createApp } from './evaluate/createApp';
 
 type EvaluateProps = {
   entriesPath: string;
-  logsPath: string;
+  outputPath: string;
 };
 
 const RUNNING_APPS_MAX_COUNT = 2;
 
-export function Evaluate({ entriesPath, logsPath }: EvaluateProps) {
+export function Evaluate({ entriesPath, outputPath }: EvaluateProps) {
   const { exit } = useApp();
   const { stdout } = useStdout();
 
@@ -39,7 +39,7 @@ export function Evaluate({ entriesPath, logsPath }: EvaluateProps) {
   const [showApiKeyModal, setShowApiKeyModal] = useState(false);
   const [showSaved, setShowSaved] = useState(false);
 
-  const apps = entries.map((entry) => createApp(entry, logsPath));
+  const apps = entries.map((entry) => createApp(entry, outputPath));
 
   const availableLines = (stdout.rows || 24) - 12;
   const boxHeight = Math.floor(availableLines / 2);

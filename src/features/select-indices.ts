@@ -1,4 +1,4 @@
-import { Algoliasearch } from 'algoliasearch';
+import type { Algoliasearch } from 'algoliasearch';
 
 const MAX_TOP_INDICES = 1;
 const MINIMUM_RECORDS_COUNT = 5000;
@@ -6,7 +6,7 @@ const NON_PRODUCTION_INDEX_NAME_PATTERNS = ['test', 'staging'];
 
 export async function selectIndices(
   appClient: Algoliasearch,
-  logFn: (...lines: string[]) => void = (...lines) => console.log(...lines)
+  logFn = (...lines: string[]) => console.log(...lines)
 ) {
   logFn('\nListing indices…');
 

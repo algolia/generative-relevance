@@ -37,14 +37,15 @@ export function createEvaluateCommand(): Command {
 
       const currentDirectory = cwd();
       const fullEntriesPath = path.resolve(currentDirectory, entriesPath);
-      const logsPath = path.resolve(path.dirname(entriesPath), 'logs');
+      const outputPath = path.resolve(path.dirname(entriesPath), 'evaluations');
 
-      if (!fs.existsSync(logsPath)) {
-        fs.mkdirSync(logsPath);
+      if (!fs.existsSync(outputPath)) {
+        fs.mkdirSync(outputPath);
       }
 
-      render(<Evaluate entriesPath={fullEntriesPath} logsPath={logsPath} />, {
-        incrementalRendering: true,
-      });
+      render(
+        <Evaluate entriesPath={fullEntriesPath} outputPath={outputPath} />,
+        { incrementalRendering: true }
+      );
     });
 }
