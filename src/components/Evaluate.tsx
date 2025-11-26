@@ -4,6 +4,7 @@ import { readFileSync, writeFileSync } from 'node:fs';
 import React, { useEffect, useState } from 'react';
 
 import { type AppEntry, createApp } from './evaluate/createApp';
+import open from 'open';
 
 type EvaluateProps = {
   entriesPath: string;
@@ -57,6 +58,13 @@ export function Evaluate({ entriesPath, outputPath }: EvaluateProps) {
     const intervalId = setInterval(save, 5000);
     return () => clearInterval(intervalId);
   }, [apps]);
+
+  const currentPersoLink = `https://dashboard.algolia.com/account/api-keys/all?applicationId=${apps[activeIndex].appId}&_pid=${apps[activeIndex].persoId}`;
+  useEffect(() => {
+    if (showApiKeyModal) {
+      open(currentPersoLink);
+    }
+  }, [showApiKeyModal]);
 
   // Handle keyboard input
   useInput((input, key) => {
@@ -139,7 +147,7 @@ export function Evaluate({ entriesPath, outputPath }: EvaluateProps) {
         </Box>
         <Box flexDirection="column" marginTop={1}>
           {apps
-            .sort((a, b) => Number(!!a.evaluated) - Number(!!b.evaluated))
+            // .sort((a, b) => Number(!!a.evaluated) - Number(!!b.evaluated))
             .slice(
               Math.floor(activeIndex / boxLines) * boxLines,
               Math.floor(activeIndex / boxLines) * boxLines + boxLines
@@ -200,10 +208,7 @@ export function Evaluate({ entriesPath, outputPath }: EvaluateProps) {
           <Text>
             Enter Admin API Key for <Text bold>{apps[activeIndex].appId}</Text>:
           </Text>
-          <Text dimColor>
-            https://dashboard.algolia.com/account/api-keys/all?applicationId=
-            {apps[activeIndex].appId}&_pid={apps[activeIndex].persoId}
-          </Text>
+          <Text dimColor>{currentPersoLink}</Text>
           <PasswordInput
             onSubmit={(value) => {
               apps[activeIndex].setAdminApiKey(value);

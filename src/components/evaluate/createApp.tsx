@@ -110,11 +110,11 @@ export function createApp(entry: AppEntry, outputPath: string) {
         {
           analysis,
           reason,
-          settings,
+          evaluation,
         }: {
           analysis?: any;
           reason?: string;
-          settings?: any;
+          evaluation?: any;
         } = { analysis: {} }
       ) => {
         // FIXME: Hack to get up-to-date logs within the run context
@@ -129,7 +129,7 @@ export function createApp(entry: AppEntry, outputPath: string) {
                   adminApiKey: '*'.repeat(32),
                   searchApiKey,
                 },
-                settings,
+                evaluation,
                 analysis,
                 logs: fullLogs,
               },
@@ -154,14 +154,14 @@ export function createApp(entry: AppEntry, outputPath: string) {
         return done();
       }
 
-      const { action, settings } = await evaluateIndex(
+      const evaluation = await evaluateIndex(
         appClient,
         targetIndex,
         updateLogs
       );
 
-      if (!action) {
-        return done({ settings });
+      if (!evaluation.action) {
+        return done({ evaluation });
       }
 
       updateLogs(`\nRunning analysis on ${targetIndex}…`);
@@ -176,9 +176,9 @@ export function createApp(entry: AppEntry, outputPath: string) {
           options: {},
         });
 
-        done({ analysis, settings });
+        done({ analysis, evaluation });
       } catch (e) {
-        done({ reason: String(e), settings });
+        done({ reason: String(e), evaluation });
       }
     },
     export: () => appState,

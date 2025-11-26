@@ -72,7 +72,7 @@ export async function evaluateIndex(
       `- ${problems.length} issue(s) found:`,
       ...problems.map(
         (problem) =>
-          `  * ${problem.text} ${problem.critical ? '(critical) ' : ''}\n${
+          `  * ${problem.text} ${problem.critical ? '(critical) ' : ''}\n    ${
             problem.data ? JSON.stringify(problem.data) : ''
           }`
       )
