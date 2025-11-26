@@ -5,6 +5,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import React, { useState } from 'react';
 
+import { EvaluateOptions } from '@/cli/commands/evaluate';
 import {
   fetchAlgoliaAppInfo,
   fetchAlgoliaSearchApiKey,
@@ -29,7 +30,11 @@ const algoliaClient = algoliasearch(
   process.env.APPS_API_KEY!
 );
 
-export function createApp(entry: AppEntry, outputPath: string) {
+export function createApp(
+  entry: AppEntry,
+  outputPath: string,
+  options: EvaluateOptions
+) {
   const [appState, setAppState] = useState(entry);
 
   let initialStatus: AppStatus;
@@ -119,7 +124,7 @@ export function createApp(entry: AppEntry, outputPath: string) {
       ) => {
         // FIXME: Hack to get up-to-date logs within the run context
         setLogs((prevLogs) => {
-          const fullLogs = [...prevLogs, `- ${reason ?? 'Done'}`];
+          const fullLogs = [...prevLogs, `\n\n${reason ?? 'Done'}`];
           fs.writeFileSync(
             outputFile,
             JSON.stringify(
@@ -165,16 +170,19 @@ export function createApp(entry: AppEntry, outputPath: string) {
       }
 
       updateLogs(`\nRunning analysis on ${targetIndex}…`);
-      // TODO: Forward command line arguments
       try {
-        const analysis = await analyze({
-          source: entry.appId,
-          apiKey: searchApiKey,
-          indexName: targetIndex,
-          model: 'gpt-5',
-          limit: 10,
-          options: {},
-        });
+        const { model, limit, ...otherOptions } = options;
+        const analysis = await analyze(
+          {
+            source: entry.appId,
+            apiKey: searchApiKey,
+            indexName: targetIndex,
+            model,
+            limit: parseInt(limit, 10),
+            options: otherOptions,
+          },
+          updateLogs
+        );
 
         done({ analysis, evaluation });
       } catch (e) {

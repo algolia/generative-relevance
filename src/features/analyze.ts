@@ -46,7 +46,8 @@ export interface DualModelAnalyzeResult {
 }
 
 export async function analyze(
-  input: AnalyzeInput
+  input: AnalyzeInput,
+  logFn = (...lines: string[]) => console.log(...lines)
 ): Promise<AnalyzeResult | DualModelAnalyzeResult> {
   const startTime = Date.now();
 
@@ -76,7 +77,8 @@ export async function analyze(
       input.source,
       input.apiKey,
       input.indexName,
-      input.limit
+      input.limit,
+      logFn
     );
 
     if (algoliaRecords.length === 0) {

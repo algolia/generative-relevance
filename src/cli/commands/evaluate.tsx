@@ -44,7 +44,11 @@ export function createEvaluateCommand(): Command {
       }
 
       render(
-        <Evaluate entriesPath={fullEntriesPath} outputPath={outputPath} />,
+        <Evaluate
+          entriesPath={fullEntriesPath}
+          outputPath={outputPath}
+          options={options}
+        />,
         { incrementalRendering: true }
       );
     });

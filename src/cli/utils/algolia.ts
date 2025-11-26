@@ -50,16 +50,17 @@ export async function fetchAlgoliaData(
   appId: string,
   apiKey: string,
   indexName: string,
-  limit: number
+  limit: number,
+  logFn = (...lines: string[]) => console.log(...lines)
 ) {
   try {
     const client = algoliasearch(appId, apiKey);
 
     try {
-      console.log('  📋 Fetching index settings...');
+      logFn('  📋 Fetching index settings...');
       const settings = await client.getSettings({ indexName });
 
-      console.log('  📄 Fetching sample records...');
+      logFn('  📄 Fetching sample records...');
       const searchResult = await client.searchSingleIndex({
         indexName,
         searchParams: {
@@ -69,10 +70,11 @@ export async function fetchAlgoliaData(
         },
       });
 
-      console.log('  🔀 Fetching replicas for sortable attributes...');
+      logFn('  🔀 Fetching replicas for sortable attributes...');
       const sortableAttributes = await getSortableAttributesFromReplicas(
         client,
-        settings
+        settings,
+        logFn
       );
 
       return {
@@ -83,7 +85,7 @@ export async function fetchAlgoliaData(
         records: searchResult.hits,
       };
     } catch (e) {
-      console.log('  📄 Fetching sample records...');
+      logFn('  📄 Fetching sample records...');
       const searchResult = await client.searchSingleIndex({
         indexName,
         searchParams: {
@@ -109,12 +111,13 @@ export async function fetchAlgoliaData(
 
 async function getSortableAttributesFromReplicas(
   client: Algoliasearch,
-  settings: SettingsResponse
+  settings: SettingsResponse,
+  logFn = (...lines: string[]) => console.log(...lines)
 ) {
   const sortableAttributes: string[] = [];
 
   if (settings.replicas && settings.replicas.length > 0) {
-    console.log(
+    logFn(
       `    📊 Found ${settings.replicas.length} replicas, checking their rankings...`
     );
 
@@ -141,13 +144,11 @@ async function getSortableAttributesFromReplicas(
           }
         }
       } catch (err) {
-        console.log(
-          `    ⚠️  Could not fetch settings for replica: ${replicaName}`
-        );
+        logFn(`    ⚠️  Could not fetch settings for replica: ${replicaName}`);
       }
     }
   } else {
-    console.log('    📊 No replicas found');
+    logFn('    📊 No replicas found');
   }
 
   return sortableAttributes;

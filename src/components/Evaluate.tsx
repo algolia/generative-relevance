@@ -1,19 +1,21 @@
 import { PasswordInput } from '@inkjs/ui';
 import { Box, Text, useApp, useInput, useStdout } from 'ink';
 import { readFileSync, writeFileSync } from 'node:fs';
+import open from 'open';
 import React, { useEffect, useState } from 'react';
 
+import type { EvaluateOptions } from '../cli/commands/evaluate';
 import { type AppEntry, createApp } from './evaluate/createApp';
-import open from 'open';
 
 type EvaluateProps = {
   entriesPath: string;
   outputPath: string;
+  options: EvaluateOptions;
 };
 
 const RUNNING_APPS_MAX_COUNT = 2;
 
-export function Evaluate({ entriesPath, outputPath }: EvaluateProps) {
+export function Evaluate({ entriesPath, outputPath, options }: EvaluateProps) {
   const { exit } = useApp();
   const { stdout } = useStdout();
 
@@ -40,7 +42,7 @@ export function Evaluate({ entriesPath, outputPath }: EvaluateProps) {
   const [showApiKeyModal, setShowApiKeyModal] = useState(false);
   const [showSaved, setShowSaved] = useState(false);
 
-  const apps = entries.map((entry) => createApp(entry, outputPath));
+  const apps = entries.map((entry) => createApp(entry, outputPath, options));
 
   const availableLines = (stdout.rows || 24) - 12;
   const boxHeight = Math.floor(availableLines / 2);

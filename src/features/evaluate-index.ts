@@ -17,7 +17,9 @@ export async function evaluateIndex(
   logFn = (...lines: string[]) => console.log(...lines)
 ): Promise<{
   action: 'runModel' | 'prompt' | null;
+  indexName: string;
   settings: SettingsResponse;
+  problems?: Array<{ text: string; data?: any; critical: boolean }>;
 }> {
   logFn(`\nEvaluating index ${indexName}…`);
 
@@ -64,7 +66,7 @@ export async function evaluateIndex(
 
   if (problems.length === 0) {
     logFn('- No issues found');
-    return { action: null, settings };
+    return { action: null, indexName, settings };
   }
 
   if (problems.length > 0) {
@@ -80,8 +82,8 @@ export async function evaluateIndex(
   }
 
   if (problems.some(({ critical }) => critical)) {
-    return { action: 'runModel', settings };
+    return { action: 'runModel', indexName, settings, problems };
   }
 
-  return { action: 'prompt', settings };
+  return { action: 'prompt', indexName, settings, problems };
 }

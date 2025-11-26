@@ -1,7 +1,7 @@
 import type { Algoliasearch } from 'algoliasearch';
 
 const MAX_TOP_INDICES = 1;
-const MINIMUM_RECORDS_COUNT = 5000;
+const MINIMUM_RECORDS_COUNT = 500;
 const NON_PRODUCTION_INDEX_NAME_PATTERNS = ['test', 'staging'];
 
 export async function selectIndices(
@@ -95,11 +95,10 @@ async function getAnalytics(
 
   const output = [];
   for (const index of indices) {
-    const indexName = index.length > 23 ? index.substring(0, 20) + '…' : index;
     counter++;
 
     try {
-      logFn(`- [${padCounter(counter, total)}/${indices.length}] ${indexName}`);
+      logFn(`- [${padCounter(counter, total)}/${indices.length}] ${index}`);
       const [usAnalytics, deAnalytics] = await Promise.all([
         usClient.getSearchesCount({
           index,
