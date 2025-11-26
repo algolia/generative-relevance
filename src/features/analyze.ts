@@ -49,6 +49,8 @@ export async function analyze(
   input: AnalyzeInput,
   logFn = (...lines: string[]) => console.log(...lines)
 ): Promise<AnalyzeResult | DualModelAnalyzeResult> {
+  logFn(`\nRunning analysis on ${input.indexName}…`);
+
   const startTime = Date.now();
 
   let model1 = input.model;

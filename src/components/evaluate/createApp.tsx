@@ -43,7 +43,7 @@ export function createApp(
       initialStatus = 'evaluated';
       break;
     case appState.evaluated === false || !appState.persoId:
-      initialStatus = 'evaluated';
+      initialStatus = 'skipped';
       break;
     case !!appState.persoId && !appState.adminApiKey:
       initialStatus = 'apiKey';
@@ -67,9 +67,7 @@ export function createApp(
   const updateLogs = (...lines: string[]) =>
     setLogs((prevLogs) => [...prevLogs, ...lines]);
 
-  const [status, setStatus] = useState<
-    'pending' | 'apiKey' | 'running' | 'evaluated' | 'queued'
-  >(initialStatus);
+  const [status, setStatus] = useState<AppStatus>(initialStatus);
 
   if (typeof appState.persoId === 'undefined') {
     fetchAlgoliaAppInfo(algoliaClient, entry.appId).then((info) => {
@@ -80,9 +78,9 @@ export function createApp(
             ? `${info.name} / ${info.user_email}`
             : 'Untitled App',
           persoId: 0,
-          evaluated: true,
+          evaluated: false,
         }));
-        setStatus('evaluated');
+        setStatus('skipped');
       } else {
         setAppState((prevState) => ({
           ...prevState,
@@ -98,6 +96,7 @@ export function createApp(
 
   return {
     ...appState,
+    outputFile,
     logs,
     status,
     render: (selected: boolean) => (
@@ -108,6 +107,10 @@ export function createApp(
         selected={selected}
       />
     ),
+    retry() {
+      setLogs([]);
+      setStatus('queued');
+    },
     async run() {
       setStatus('running');
 
@@ -169,7 +172,6 @@ export function createApp(
         return done({ evaluation });
       }
 
-      updateLogs(`\nRunning analysis on ${targetIndex}…`);
       try {
         const { model, limit, ...otherOptions } = options;
         const analysis = await analyze(

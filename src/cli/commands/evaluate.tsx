@@ -33,6 +33,8 @@ export function createEvaluateCommand(): Command {
       'gpt-5'
     )
     .action(async (entriesPath: string, options: EvaluateOptions) => {
+      globalThis.AI_SDK_LOG_WARNINGS = false;
+
       validateEnvVars(options.model);
 
       const currentDirectory = cwd();

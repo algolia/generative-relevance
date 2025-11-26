@@ -73,17 +73,38 @@ export function Evaluate({ entriesPath, outputPath, options }: EvaluateProps) {
     if (!showApiKeyModal) {
       // Apps navigation
       if (key.upArrow) {
-        setActiveIndex((index) =>
-          index - 1 >= 0 ? index - 1 : apps.length - 1
+        setActiveIndex(
+          activeIndex - 1 >= 0 ? activeIndex - 1 : apps.length - 1
         );
       }
       if (key.downArrow) {
-        setActiveIndex((index) => (index + 1 < apps.length ? index + 1 : 0));
+        setActiveIndex(activeIndex + 1 < apps.length ? activeIndex + 1 : 0);
+      }
+      if (key.leftArrow) {
+        const prevIndex = (Math.floor(activeIndex / boxLines) - 1) * boxLines;
+        setActiveIndex(
+          prevIndex >= 0
+            ? prevIndex
+            : Math.floor(apps.length / boxLines) * boxLines
+        );
+      }
+      if (key.rightArrow) {
+        const nextIndex = (Math.floor(activeIndex / boxLines) + 1) * boxLines;
+        setActiveIndex(nextIndex < apps.length ? nextIndex : 0);
       }
 
       // Show Api Key Modal
       if (key.return && apps[activeIndex].status === 'apiKey') {
         setShowApiKeyModal(true);
+      }
+
+      // Re-run evaluation
+      if (
+        key.ctrl &&
+        input === 'r' &&
+        apps[activeIndex].status === 'evaluated'
+      ) {
+        apps[activeIndex].retry();
       }
 
       // Save
@@ -127,7 +148,7 @@ export function Evaluate({ entriesPath, outputPath, options }: EvaluateProps) {
           {showSaved && <Text color="green">Entries saved 💾</Text>}
         </Box>
         <Text dimColor>
-          Use ↑/↓ arrows to navigate • Ctrl+S to save entries • Esc to quit
+          Use ↑/↓/←/→ arrows to navigate • Ctrl+S to save entries • Esc to quit
         </Text>
       </Box>
       {/* Applications */}

@@ -8,7 +8,8 @@ export type AppStatus =
   | 'apiKey'
   | 'queued'
   | 'running'
-  | 'evaluated';
+  | 'evaluated'
+  | 'skipped';
 
 type AppLabelProps = {
   appId: string;
@@ -40,6 +41,7 @@ function AppStatusIcon({ status }: AppStatusIconProps) {
     pending: '🌐',
     apiKey: '🔑',
     evaluated: '✅',
+    skipped: '🚫',
     queued: '⏳',
     running: <Spinner type="clock" />,
   };
