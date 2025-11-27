@@ -194,6 +194,9 @@ export function Evaluate({ entriesPath, outputPath, options }: EvaluateProps) {
           Queued: {apps.filter(({ status }) => status === 'queued').length}
         </Text>
         <Text dimColor>
+          Skipped: {apps.filter(({ status }) => status === 'skipped').length}
+        </Text>
+        <Text dimColor>
           Missing API Key:{' '}
           {apps.filter(({ status }) => status === 'apiKey').length}
         </Text>

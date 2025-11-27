@@ -10,6 +10,19 @@ export async function selectIndices(
 ) {
   logFn('\nListing indices…');
 
+  const productionIndices = await getProductionIndices(appClient.appId, logFn);
+  if (productionIndices.length > 0) {
+    const topIndices = productionIndices.slice(0, MAX_TOP_INDICES);
+
+    logFn(
+      '\nSelected top indices:',
+      topIndices.map((index) => `- ${index}`).join('\n')
+    );
+    return topIndices;
+  }
+
+  logFn('- Using local heuristics');
+
   const indices = await appClient.listIndices({ hitsPerPage: 1000 });
   const qsIndices = await getQuerySuggestionsIndices(appClient);
   const primaryIndices = indices.items.filter(
@@ -122,6 +135,37 @@ async function getAnalytics(
     await new Promise((resolve) => setTimeout(resolve, 300));
   }
   return output;
+}
+
+async function getProductionIndices(
+  appId: string,
+  logFn = (...lines: string[]) => console.log(...lines)
+) {
+  if (!process.env.DASHBOARD_INTERNAL_API_KEY) {
+    logFn('- ⚠️ DASHBOARD_INTERNAL_API_KEY not set');
+    return [];
+  }
+
+  const request = await fetch(
+    `https://www.algolia.com/api/internal/1/applications/${appId}?fields=production_indices,production_indices_auto_selection,production_indices_manual_selection`,
+    {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+        'User-Agent': 'Generative Relevance Evaluation (poc)',
+        Authorization: `Basic ${process.env.DASHBOARD_INTERNAL_API_KEY}`,
+      },
+    }
+  );
+
+  const response = await request.json();
+  const aggregatedProductionIndices = new Set<string>([
+    ...response.production_indices,
+    ...response.production_indices_auto_selection,
+    ...response.production_indices_manual_selection,
+  ]);
+
+  return [...aggregatedProductionIndices];
 }
 
 function padCounter(count: number, total: number) {
