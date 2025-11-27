@@ -10,7 +10,12 @@ export async function selectIndices(
 ) {
   logFn('\nListing indices…');
 
-  const productionIndices = await getProductionIndices(appClient.appId, logFn);
+  const allIndices = (await appClient.listIndices({ hitsPerPage: 1000 })).items;
+  const productionIndices = await getProductionIndices(
+    appClient,
+    allIndices,
+    logFn
+  );
   if (productionIndices.length > 0) {
     const topIndices = productionIndices.slice(0, MAX_TOP_INDICES);
 
@@ -23,9 +28,8 @@ export async function selectIndices(
 
   logFn('- Using local heuristics');
 
-  const indices = await appClient.listIndices({ hitsPerPage: 1000 });
   const qsIndices = await getQuerySuggestionsIndices(appClient);
-  const primaryIndices = indices.items.filter(
+  const primaryIndices = allIndices.filter(
     (index) =>
       !index.primary &&
       !qsIndices.includes(index.name) &&
@@ -42,7 +46,7 @@ export async function selectIndices(
   }
 
   logFn(
-    `- ${indices.items.length} total indices`,
+    `- ${allIndices.length} total indices`,
     `- ${primaryIndices.length} primary indices`
   );
 
@@ -138,7 +142,8 @@ async function getAnalytics(
 }
 
 async function getProductionIndices(
-  appId: string,
+  appClient: Algoliasearch,
+  allIndices: Awaited<ReturnType<typeof appClient.listIndices>>['items'],
   logFn = (...lines: string[]) => console.log(...lines)
 ) {
   if (!process.env.DASHBOARD_INTERNAL_API_KEY) {
@@ -147,7 +152,7 @@ async function getProductionIndices(
   }
 
   const request = await fetch(
-    `https://www.algolia.com/api/internal/1/applications/${appId}?fields=production_indices,production_indices_auto_selection,production_indices_manual_selection`,
+    `https://www.algolia.com/api/internal/1/applications/${appClient.appId}?fields=production_indices,production_indices_auto_selection,production_indices_manual_selection`,
     {
       method: 'GET',
       headers: {
@@ -165,7 +170,11 @@ async function getProductionIndices(
     ...response.production_indices_manual_selection,
   ]);
 
-  return [...aggregatedProductionIndices];
+  const validProoductionIndices = aggregatedProductionIndices.intersection(
+    new Set(allIndices.map((i) => i.name))
+  );
+
+  return [...validProoductionIndices];
 }
 
 function padCounter(count: number, total: number) {
