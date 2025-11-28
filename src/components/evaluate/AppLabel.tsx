@@ -4,28 +4,32 @@ import { Spinner } from '@inkjs/ui';
 import { Box, Text } from 'ink';
 
 export type AppStatus =
-  | 'pending'
+  | 'initializing'
+  | 'noPerso'
   | 'apiKey'
   | 'queued'
   | 'running'
-  | 'evaluated'
-  | 'skipped';
+  | 'succeeded'
+  | 'failed'
+  | 'discarded';
 
 type AppLabelProps = {
   appId: string;
   name: string;
-  status: AppStatus;
+  status?: AppStatus;
   selected: boolean;
 };
 
 export function AppLabel({ appId, name, status, selected }: AppLabelProps) {
   return (
-    <Box gap={1}>
-      <Text color={selected ? 'cyan' : 'gray'} bold={selected}>
-        {selected ? '•' : ' '}
-      </Text>
-      <AppStatusIcon status={status} />
-      <Text wrap="end" color={selected ? 'cyan' : 'gray'} bold={selected}>
+    <Box
+      paddingX={1}
+      gap={1}
+      width="100%"
+      backgroundColor={selected ? 'gray' : undefined}
+    >
+      <AppStatusIcon status={status ?? 'initializing'} />
+      <Text wrap="end">
         {appId} ({name})
       </Text>
     </Box>
@@ -36,20 +40,25 @@ type AppStatusIconProps = {
   status: AppStatus;
 };
 
-function AppStatusIcon({ status }: AppStatusIconProps) {
-  const statusMap: Record<AppStatus, string | React.JSX.Element> = {
-    pending: '🌐',
-    apiKey: '🔑',
-    evaluated: '✅',
-    skipped: '🚫',
-    queued: '⏳',
-    running: <Spinner type="clock" />,
+export function AppStatusIcon({ status }: AppStatusIconProps) {
+  const statusMap: Record<
+    AppStatus,
+    { color: string; symbol: string | React.JSX.Element }
+  > = {
+    initializing: { color: 'gray', symbol: '?' },
+    noPerso: { color: 'gray', symbol: 'N' },
+    apiKey: { color: 'yellow', symbol: 'K' },
+    queued: { color: 'blue', symbol: 'Q' },
+    running: { color: 'white', symbol: <Spinner /> },
+    succeeded: { color: 'green', symbol: 'S' },
+    failed: { color: 'redBright', symbol: 'F' },
+    discarded: { color: 'black', symbol: 'D' },
   };
 
-  const icon = statusMap[status];
-  return typeof icon === 'string' ? (
-    <Text>{icon}</Text>
-  ) : (
-    <Box marginRight={-1}>{icon}</Box>
+  const { color, symbol } = statusMap[status];
+  return (
+    <Box backgroundColor={color} paddingX={1}>
+      {typeof symbol === 'string' ? <Text>{symbol}</Text> : symbol}
+    </Box>
   );
 }

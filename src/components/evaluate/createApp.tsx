@@ -22,6 +22,7 @@ export type AppEntry = {
   adminApiKey?: string;
   name?: string;
   persoId?: number;
+  status?: AppStatus;
   evaluated?: boolean;
 };
 
@@ -36,83 +37,72 @@ export function createApp(
   options: EvaluateOptions
 ) {
   const [appState, setAppState] = useState(entry);
-
-  let initialStatus: AppStatus;
-  switch (true) {
-    case appState.evaluated:
-      initialStatus = 'evaluated';
-      break;
-    case appState.evaluated === false || !appState.persoId:
-      initialStatus = 'skipped';
-      break;
-    case !!appState.persoId && !appState.adminApiKey:
-      initialStatus = 'apiKey';
-      break;
-    case appState.persoId && !!appState.adminApiKey:
-      initialStatus = 'queued';
-      break;
-    default:
-      initialStatus = 'pending';
-      break;
-  }
+  const patchState = (newState: Partial<AppEntry>) =>
+    setAppState((prevState) => ({ ...prevState, ...newState }));
 
   const outputFile = path.resolve(outputPath, `${entry.appId}.json`);
-  const initialLogs =
-    JSON.parse(
-      fs.readFileSync(outputFile, { encoding: 'utf-8', flag: 'a+' }) || '{}'
-    ).logs ?? [];
-  const [logs, setLogs] = useState<string[]>(
-    initialStatus === 'evaluated' ? initialLogs : []
-  );
+  const [logs, setLogs] = useState<string[]>([]);
   const updateLogs = (...lines: string[]) =>
     setLogs((prevLogs) => [...prevLogs, ...lines]);
-
-  const [status, setStatus] = useState<AppStatus>(initialStatus);
-
-  if (typeof appState.persoId === 'undefined') {
-    fetchAlgoliaAppInfo(algoliaClient, entry.appId).then((info) => {
-      if (!info?.user_can_be_personified) {
-        setAppState((prevState) => ({
-          ...prevState,
-          name: info.name
-            ? `${info.name} / ${info.user_email}`
-            : 'Untitled App',
-          persoId: 0,
-          evaluated: false,
-        }));
-        setStatus('skipped');
-      } else {
-        setAppState((prevState) => ({
-          ...prevState,
-          name: info.name
-            ? `${info.name} / ${info.user_email}`
-            : 'Untitled App',
-          persoId: info.user_can_be_personified_id,
-        }));
-        setStatus('apiKey');
-      }
-    });
-  }
 
   return {
     ...appState,
     outputFile,
     logs,
-    status,
+    discard() {
+      patchState({ status: 'discarded' });
+    },
+    async init() {
+      if (appState.status === 'succeeded' || appState.status === 'failed') {
+        const previousLogs =
+          JSON.parse(
+            fs.readFileSync(outputFile, { encoding: 'utf-8', flag: 'a+' }) ||
+              '{}'
+          ).logs ?? [];
+        setLogs(previousLogs);
+        return;
+      }
+
+      const initLogs = [`Initializing app from entries…`];
+      if (appState.status === 'running') {
+        initLogs.push('- Resuming previous running state, setting to queued');
+        patchState({ status: 'queued' });
+      }
+
+      if (typeof appState.persoId === 'undefined') {
+        initLogs.push('- Fetching app info from Algolia');
+        const info = await fetchAlgoliaAppInfo(algoliaClient, entry.appId);
+        const canPerso = info.user_can_be_personified === true;
+
+        initLogs.push(
+          `- Personification ${canPerso ? 'available' : 'not available'}`
+        );
+
+        patchState({
+          name: info.name
+            ? `${info.name} / ${info.user_email}`
+            : 'Untitled App',
+          persoId: canPerso ? info.user_can_be_personified_id : 0,
+          status: canPerso ? 'apiKey' : 'noPerso',
+        });
+      }
+
+      setLogs(initLogs);
+    },
     render: (selected: boolean) => (
       <AppLabel
         appId={appState.appId}
         name={appState.name!}
-        status={status}
+        status={appState.status}
         selected={selected}
       />
     ),
     retry() {
       setLogs([]);
-      setStatus('queued');
+      patchState({ status: 'queued' });
     },
     async run() {
-      setStatus('running');
+      patchState({ status: 'running' });
 
       const done = (
         {
@@ -150,8 +140,7 @@ export function createApp(
           return fullLogs;
         });
 
-        setAppState((prevState) => ({ ...prevState, evaluated: true }));
-        setStatus('evaluated');
+        patchState({ status: reason ? 'failed' : 'succeeded' });
       };
 
       const appClient = algoliasearch(this.appId, this.adminApiKey!);
@@ -159,7 +148,7 @@ export function createApp(
 
       const [targetIndex] = await selectIndices(appClient, updateLogs);
       if (!targetIndex) {
-        return done();
+        return done({ reason: 'No target index could be found' });
       }
 
       const evaluation = await evaluateIndex(
@@ -194,7 +183,7 @@ export function createApp(
     export: () => appState,
     setAdminApiKey(adminApiKey: string) {
       setAppState((prevState) => ({ ...prevState, adminApiKey }));
-      setStatus('queued');
+      patchState({ status: 'queued' });
     },
   };
 }

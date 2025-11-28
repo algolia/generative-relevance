@@ -14,6 +14,7 @@ type EvaluateProps = {
 };
 
 const RUNNING_APPS_MAX_COUNT = 2;
+let initialized = false;
 
 export function Evaluate({ entriesPath, outputPath, options }: EvaluateProps) {
   const { exit } = useApp();
@@ -102,9 +103,15 @@ export function Evaluate({ entriesPath, outputPath, options }: EvaluateProps) {
       if (
         key.ctrl &&
         input === 'r' &&
-        apps[activeIndex].status === 'evaluated'
+        (apps[activeIndex].status === 'succeeded' ||
+          apps[activeIndex].status === 'failed')
       ) {
         apps[activeIndex].retry();
+      }
+
+      // Discard
+      if (key.ctrl && input === 'd' && apps[activeIndex].status === 'apiKey') {
+        apps[activeIndex].discard();
       }
 
       // Save
@@ -124,6 +131,11 @@ export function Evaluate({ entriesPath, outputPath, options }: EvaluateProps) {
       }
     }
   });
+
+  if (!initialized) {
+    apps.forEach((app) => app.init());
+    initialized = true;
+  }
 
   const runningApps = apps.filter(({ status }) => status === 'running');
   const runnableApps = apps
@@ -183,23 +195,78 @@ export function Evaluate({ entriesPath, outputPath, options }: EvaluateProps) {
         </Box>
       </Box>
       <Box paddingY={1} alignItems="center" justifyContent="space-around">
-        <Text dimColor>
-          Evaluated:{' '}
-          {apps.filter(({ status }) => status === 'evaluated').length}
-        </Text>
-        <Text dimColor>
-          Running: {apps.filter(({ status }) => status === 'running').length}
-        </Text>
-        <Text dimColor>
-          Queued: {apps.filter(({ status }) => status === 'queued').length}
-        </Text>
-        <Text dimColor>
-          Skipped: {apps.filter(({ status }) => status === 'skipped').length}
-        </Text>
-        <Text dimColor>
-          Missing API Key:{' '}
-          {apps.filter(({ status }) => status === 'apiKey').length}
-        </Text>
+        <Box gap={1}>
+          <Text color="green">
+            <Text bold underline>
+              S
+            </Text>
+            ucceeded
+          </Text>
+          <Text dimColor>
+            {apps.filter(({ status }) => status === 'succeeded').length}
+          </Text>
+        </Box>
+        <Box gap={1}>
+          <Text color="white">Running</Text>
+          <Text dimColor>
+            {apps.filter(({ status }) => status === 'running').length}
+          </Text>
+        </Box>
+        <Box gap={1}>
+          <Text color="blue">
+            <Text bold underline>
+              Q
+            </Text>
+            ueued
+          </Text>
+          <Text dimColor>
+            {apps.filter(({ status }) => status === 'queued').length}
+          </Text>
+        </Box>
+        <Box gap={1}>
+          <Text color="yellow">
+            <Text bold underline>
+              K
+            </Text>
+            ey required
+          </Text>
+          <Text dimColor>
+            {apps.filter(({ status }) => status === 'apiKey').length}
+          </Text>
+        </Box>
+        <Box gap={1}>
+          <Text color="redBright">
+            <Text bold underline>
+              F
+            </Text>
+            ailed
+          </Text>
+          <Text dimColor>
+            {apps.filter(({ status }) => status === 'failed').length}
+          </Text>
+        </Box>
+        <Box gap={1}>
+          <Text color="gray">
+            <Text bold underline>
+              N
+            </Text>
+            on-personifiable
+          </Text>
+          <Text dimColor>
+            {apps.filter(({ status }) => status === 'noPerso').length}
+          </Text>
+        </Box>
+        <Box gap={1}>
+          <Text color="black">
+            <Text bold underline>
+              D
+            </Text>
+            iscarded
+          </Text>
+          <Text dimColor>
+            {apps.filter(({ status }) => status === 'discarded').length}
+          </Text>
+        </Box>
       </Box>
       {/* Logs */}
       <Box
