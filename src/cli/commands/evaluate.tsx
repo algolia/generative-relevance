@@ -15,6 +15,22 @@ export interface EvaluateOptions extends ConfigurationOptions {
   model: string;
 }
 
+/**
+ * This command evaluates and generates AI configuration suggestions for
+ * multiple Algolia indices in an automated way.
+ *
+ * Pre-requisites:
+ * - APPS_APP_ID and APPS_API_KEY environment variables
+ *   to retrieve personification data
+ * - DASHBOARD_INTERNAL_API_KEY environment variable
+ *   to retrieve production indices names
+ * - entries.json file containing a list of applications to evaluate:
+ *   [{ "appId": "YOUR_APP_ID_1" }]
+ *
+ * Evaluations will be saved as JSON files in the `evaluations` directory,
+ * relative to the `entries.json` file location.
+ *
+ */
 export function createEvaluateCommand(): Command {
   return new Command('evaluate')
     .description(
