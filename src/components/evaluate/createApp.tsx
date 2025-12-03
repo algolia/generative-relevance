@@ -54,11 +54,12 @@ export function createApp(
     },
     async init() {
       if (appState.status === 'succeeded' || appState.status === 'failed') {
-        const previousLogs =
-          JSON.parse(
-            fs.readFileSync(outputFile, { encoding: 'utf-8', flag: 'a+' }) ||
-              '{}'
-          ).logs ?? [];
+        const previousLogs = fs.existsSync(outputFile)
+          ? JSON.parse(
+              fs.readFileSync(outputFile, { encoding: 'utf-8', flag: 'a+' }) ||
+                '{}'
+            ).logs ?? []
+          : [];
         setLogs(previousLogs);
         return;
       }
@@ -116,6 +117,7 @@ export function createApp(
         } = { analysis: {} }
       ) => {
         // FIXME: Hack to get up-to-date logs within the run context
+        const status = reason ? 'failed' : 'succeeded';
         setLogs((prevLogs) => {
           const fullLogs = [...prevLogs, `\n\n${reason ?? 'Done'}`];
           fs.writeFileSync(
@@ -124,6 +126,7 @@ export function createApp(
               {
                 info: {
                   ...appState,
+                  status,
                   adminApiKey: '*'.repeat(32),
                   searchApiKey,
                 },
@@ -140,10 +143,11 @@ export function createApp(
           return fullLogs;
         });
 
-        patchState({ status: reason ? 'failed' : 'succeeded' });
+        patchState({ status });
       };
 
       const appClient = algoliasearch(this.appId, this.adminApiKey!);
+      // FIXME: Catch issues and prompt for search key instead
       const searchApiKey = await fetchAlgoliaSearchApiKey(appClient);
 
       const [targetIndex] = await selectIndices(appClient, updateLogs);
